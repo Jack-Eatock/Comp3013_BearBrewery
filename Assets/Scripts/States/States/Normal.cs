@@ -1,4 +1,8 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Composites;
+using UnityEngine.UI;
+using static UnityEngine.RuleTile.TilingRuleOutput;
 
 namespace DistilledGames.States
 {
@@ -28,8 +32,16 @@ namespace DistilledGames.States
         {
             Debug.Log("Movement input" + input);
 
+            gameManager.BearController.OnMove(input);
 
-            /// Add movement here!
+            return StateDefinitions.ChangeInState.NoChange;
+        }
+
+        public override StateDefinitions.ChangeInState SprintInput(bool sprint)
+        {
+            Debug.Log("Sprint input" + sprint);
+
+            gameManager.BearController.Moving(sprint);
 
             return StateDefinitions.ChangeInState.NoChange;
         }

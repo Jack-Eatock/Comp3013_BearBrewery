@@ -11,7 +11,11 @@ namespace DistilledGames
         protected string activeState, prevState, nextState;
         protected StateDefinitions.IStateManager _activeState, _prevState, _nextState;
 
+        [SerializeField] private BearController bearController;
+
         #region Getters
+
+        public BearController BearController => bearController; // simplified getter
 
         public string PrevState
         {

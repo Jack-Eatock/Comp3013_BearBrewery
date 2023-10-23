@@ -1,4 +1,7 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Composites;
+using UnityEngine.UI;
 
 namespace DistilledGames
 {
@@ -20,6 +23,7 @@ namespace DistilledGames
             ChangeInState EnterBuildMode();
 
             ChangeInState MovementInput(Vector2 input);
+            ChangeInState SprintInput(bool sprint);
         }
     }
 }

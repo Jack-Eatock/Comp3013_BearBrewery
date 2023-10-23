@@ -1,5 +1,8 @@
 using UnityEngine;
 using DistilledGames;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
+using UnityEngine.InputSystem.Composites;
 
 namespace DistilledGames.States
 {
@@ -32,6 +35,11 @@ namespace DistilledGames.States
         }
 
         public virtual StateDefinitions.ChangeInState MovementInput(Vector2 input)
+        {
+            return StateDefinitions.ChangeInState.NoChange;
+        }
+
+        public virtual StateDefinitions.ChangeInState SprintInput(bool sprint)
         {
             return StateDefinitions.ChangeInState.NoChange;
         }

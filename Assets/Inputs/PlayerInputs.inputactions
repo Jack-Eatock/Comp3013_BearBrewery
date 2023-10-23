@@ -15,6 +15,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "Sprint",
+                    "type": "Button",
+                    "id": "21420322-fb43-4633-9eea-03da45a3a35a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "PrimaryCursorPos",
                     "type": "PassThrough",
                     "id": "c1fb0051-6a26-4537-8e85-c370fbe5556d",
@@ -183,6 +192,17 @@
                     "processors": "",
                     "groups": "PlayerControls",
                     "action": "EnterBuildMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "66a5c912-d7c7-42b6-8612-e18078e7221f",
+                    "path": "<Keyboard>/leftShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "PlayerControls",
+                    "action": "Sprint",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
