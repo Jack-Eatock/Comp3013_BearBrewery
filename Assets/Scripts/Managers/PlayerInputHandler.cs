@@ -15,15 +15,20 @@ namespace DistilledGames
         private InputAction primaryCursorInteraction;
         private InputAction playerMovement;
         private InputAction playerSprint;
+        private InputAction playerInteract;
         private InputAction enterBuildMode;
 
         private Vector2 primaryCursorPosition;
         private Vector2 movementInput;
         private bool sprint;
-
+        private bool interact;
         
 
+
         #region Getters
+
+        public bool Sprint => sprint;
+        public bool Interact => interact;
 
         public Vector2 PrimaryCursorPosition
         {
@@ -54,6 +59,7 @@ namespace DistilledGames
             primaryCursorInteraction = playerInput.actions["PrimaryCursorClick"];
             playerMovement = playerInput.actions["Movement"];
             playerSprint = playerInput.actions["Sprint"];
+            playerInteract = playerInput.actions["Interaction"];
             enterBuildMode = playerInput.actions["EnterBuildMode"];
         }
 
@@ -68,7 +74,15 @@ namespace DistilledGames
                 sprint = false;
             }
 
-            gamemanager.CheckIfStateShouldChange(gamemanager.ActiveState.SprintInput(sprint));
+            if (playerInteract.WasPressedThisFrame())
+            {
+                interact = true;
+                Debug.Log("Interacting!");
+            }
+            else
+            {
+                interact = false;
+            }
         }
 
         private void OnEnable()
