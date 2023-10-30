@@ -23,7 +23,6 @@ namespace DistilledGames
             ChangeInState EnterBuildMode();
 
             ChangeInState MovementInput(Vector2 input);
-            ChangeInState SprintInput(bool sprint);
         }
     }
 }

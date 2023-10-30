@@ -39,11 +39,6 @@ namespace DistilledGames.States
             return StateDefinitions.ChangeInState.NoChange;
         }
 
-        public virtual StateDefinitions.ChangeInState SprintInput(bool sprint)
-        {
-            return StateDefinitions.ChangeInState.NoChange;
-        }
-
         public virtual StateDefinitions.ChangeInState EnterBuildMode()
         {
             return StateDefinitions.ChangeInState.NoChange;

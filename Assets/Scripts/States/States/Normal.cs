@@ -37,15 +37,6 @@ namespace DistilledGames.States
             return StateDefinitions.ChangeInState.NoChange;
         }
 
-        public override StateDefinitions.ChangeInState SprintInput(bool sprint)
-        {
-            Debug.Log("Sprint input" + sprint);
-
-            gameManager.BearController.Moving(sprint);
-
-            return StateDefinitions.ChangeInState.NoChange;
-        }
-
         public override StateDefinitions.ChangeInState EnterBuildMode()
         {
             gameManager.NextState = StateDefinitions.GameStates.BuildingMode.ToString();
