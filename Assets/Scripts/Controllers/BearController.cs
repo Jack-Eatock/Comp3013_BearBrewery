@@ -27,6 +27,7 @@ public class BearController : MonoBehaviour
     private bool interactHoldTriggered = false;
 
     public bool IsItemHeld => isItemHeld;
+    public Item HeldItem => heldItem;
 
     void Update()
     {
@@ -75,55 +76,91 @@ public class BearController : MonoBehaviour
     {
         if (heldItem != null)
         {
-            // Drop the held item slightly below the center of the collider
-            heldItem.transform.position = detectionCollider.transform.position + new Vector3(0, -detectionCollider.radius * 0.2f, 0);
-            heldItem.transform.parent = null; // Unparent the item so it doesn't move with the bear
-            heldItem.GetComponent<SpriteRenderer>().sortingOrder = heldItemOriginalSortingOrder; // Reset the sorting order
-            heldItem = null; // Reset the held item reference
-            isItemHeld = false;
+            DropHeldItem();
         }
         else
         {
             Collider2D[] hitColliders = Physics2D.OverlapCircleAll(detectionCollider.transform.position, detectionCollider.radius);
-
-            foreach (var hitCollider in hitColliders)
-            {
-                // Check for Items first
-                Item item = hitCollider.GetComponent<Item>();
-
-                if (item != null && item.IsInteractable)
-                {
-                    // Pick up the interactable item and move it to the center of the collider
-                    item.transform.position = detectionCollider.transform.position;
-                    item.transform.parent = detectionCollider.transform; // Parent the item to the collider so it moves with the bear
-                    heldItemOriginalSortingOrder = item.GetComponent<SpriteRenderer>().sortingOrder; // Store original sorting order
-                    item.GetComponent<SpriteRenderer>().sortingOrder = this.GetComponent<SpriteRenderer>().sortingOrder - 1; // Ensure item is behind the bear
-                    heldItem = item; // Set the held item reference
-                    Debug.Log("Picked up an interactable item!");
-                    isItemHeld = true;
-                    break; // Bear can hold only one item, so we break once we've found one
-                }
-
-                // Check for interaction with Depot
-                Depot depot = hitCollider.GetComponent<Depot>();
-                if (depot != null)
-                {
-                    Item dispensedItem = depot.DispenseItem();
-                    if (dispensedItem != null)
-                    {
-                        dispensedItem.transform.position = detectionCollider.transform.position;
-                        dispensedItem.transform.parent = detectionCollider.transform; // Parent the item to the collider so it moves with the bear
-                        heldItemOriginalSortingOrder = dispensedItem.GetComponent<SpriteRenderer>().sortingOrder; // Store original sorting order
-                        dispensedItem.GetComponent<SpriteRenderer>().sortingOrder = this.GetComponent<SpriteRenderer>().sortingOrder - 1; // Ensure item is behind the bear
-                        heldItem = dispensedItem; // Set the held item reference
-                        Debug.Log("Picked up an item from depot!");
-                        isItemHeld = true;
-                        break; // Bear can hold only one item, so we break once we've found one
-                    }
-                }
-            }
+            TryPickUpItem(hitColliders);
         }
     }
+
+    private void DropHeldItem()
+    {
+        // Drop the held item slightly below the center of the collider
+        heldItem.transform.position = detectionCollider.transform.position + new Vector3(0, -detectionCollider.radius * 0.2f, 0);
+        heldItem.transform.parent = null;
+        heldItem.GetComponent<SpriteRenderer>().sortingOrder = heldItemOriginalSortingOrder;
+        heldItem = null;
+        isItemHeld = false;
+    }
+
+    private void TryPickUpItem(Collider2D[] hitColliders)
+    {
+        foreach (var hitCollider in hitColliders)
+        {
+            if (TryPickUpFromBoiler(hitCollider)) return;
+            if (TryPickUpInteractableItem(hitCollider)) break;
+            if (TryPickUpFromDepot(hitCollider)) break;
+        }
+    }
+
+    private bool TryPickUpFromBoiler(Collider2D hitCollider)
+    {
+        Boiler boiler = hitCollider.GetComponent<Boiler>();
+        if (boiler != null)
+        {
+            Item outputItem = boiler.RemoveItem();
+            if (outputItem != null)
+            {
+                PickUpItem(outputItem);
+                Debug.Log("Picked up an item from the boiler!");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool TryPickUpInteractableItem(Collider2D hitCollider)
+    {
+        Item item = hitCollider.GetComponent<Item>();
+        if (item != null && item.IsInteractable)
+        {
+            PickUpItem(item);
+            Debug.Log("Picked up an interactable item!");
+            return true;
+        }
+        return false;
+    }
+
+    private bool TryPickUpFromDepot(Collider2D hitCollider)
+    {
+        Depot depot = hitCollider.GetComponent<Depot>();
+        if (depot != null)
+        {
+            Item dispensedItem = depot.DispenseItem();
+            if (dispensedItem != null)
+            {
+                PickUpItem(dispensedItem);
+                Debug.Log("Picked up an item from depot!");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void PickUpItem(Item item)
+    {
+        item.transform.position = detectionCollider.transform.position;
+        item.transform.parent = detectionCollider.transform;
+        heldItemOriginalSortingOrder = item.GetComponent<SpriteRenderer>().sortingOrder;
+        item.GetComponent<SpriteRenderer>().sortingOrder = this.GetComponent<SpriteRenderer>().sortingOrder - 1;
+        heldItem = item;
+        isItemHeld = true;
+    }
+
+
+
 
 
 
@@ -143,7 +180,18 @@ public class BearController : MonoBehaviour
                     isItemHeld = false;
                     break;
                 }
+
+                Boiler boiler = hitCollider.GetComponent<Boiler>();
+                if (boiler != null)
+                {
+                    // Add item to the boiler for processing
+                    boiler.AddItem(heldItem);
+                    heldItem = null;
+                    isItemHeld = false;
+                    break;
+                }
             }
         }
     }
+
 }
