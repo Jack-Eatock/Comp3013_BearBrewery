@@ -88,6 +88,7 @@ public class BearController : MonoBehaviour
 
             foreach (var hitCollider in hitColliders)
             {
+                // Check for Items first
                 Item item = hitCollider.GetComponent<Item>();
 
                 if (item != null && item.IsInteractable)
@@ -102,9 +103,28 @@ public class BearController : MonoBehaviour
                     isItemHeld = true;
                     break; // Bear can hold only one item, so we break once we've found one
                 }
+
+                // Check for interaction with Depot
+                Depot depot = hitCollider.GetComponent<Depot>();
+                if (depot != null)
+                {
+                    Item dispensedItem = depot.DispenseItem();
+                    if (dispensedItem != null)
+                    {
+                        dispensedItem.transform.position = detectionCollider.transform.position;
+                        dispensedItem.transform.parent = detectionCollider.transform; // Parent the item to the collider so it moves with the bear
+                        heldItemOriginalSortingOrder = dispensedItem.GetComponent<SpriteRenderer>().sortingOrder; // Store original sorting order
+                        dispensedItem.GetComponent<SpriteRenderer>().sortingOrder = this.GetComponent<SpriteRenderer>().sortingOrder - 1; // Ensure item is behind the bear
+                        heldItem = dispensedItem; // Set the held item reference
+                        Debug.Log("Picked up an item from depot!");
+                        isItemHeld = true;
+                        break; // Bear can hold only one item, so we break once we've found one
+                    }
+                }
             }
         }
     }
+
 
 
     public void InteractHold()
