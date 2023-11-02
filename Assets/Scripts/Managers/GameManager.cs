@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using DistilledGames.States;
+using System.Collections.Generic;
 
 namespace DistilledGames
 {
@@ -12,6 +13,8 @@ namespace DistilledGames
         protected StateDefinitions.IStateManager _activeState, _prevState, _nextState;
 
         [SerializeField] private BearController bearController;
+
+        private List<Item> items = new List<Item>();
 
         #region Getters
 
@@ -59,6 +62,31 @@ namespace DistilledGames
         private void Update()
         {
             _activeState.StateUpdate();
+        }
+
+        public void SetBearActive(bool state)
+        {
+            bearController.gameObject.SetActive(state);
+        }
+
+        public void SetItemsActive(bool state)
+        {
+            foreach(Item item in items)
+                item.gameObject.SetActive(state);
+        }
+
+        public void RegisterItem(Item item)
+        {
+            items.Add(item);
+        }
+
+        /// <summary>
+        /// When an item is destroyed we should de register it.
+        /// </summary>
+        /// <param name="item"></param>
+        public void DeRegisterItem(Item item)
+        {
+            items.Remove(item); 
         }
 
         #region Handling State

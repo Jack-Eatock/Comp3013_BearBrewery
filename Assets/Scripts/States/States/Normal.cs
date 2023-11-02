@@ -1,8 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Composites;
-using UnityEngine.UI;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
 namespace DistilledGames.States
 {
@@ -16,6 +12,7 @@ namespace DistilledGames.States
         public override void StateExit()
         {
             base.StateExit();
+            MovementInput(Vector3.zero); // reset movement values;
         }
 
         public override void StateUpdate()
