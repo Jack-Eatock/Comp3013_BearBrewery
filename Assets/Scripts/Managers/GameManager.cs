@@ -8,17 +8,20 @@ namespace DistilledGames
     public class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
-        [SerializeField]
-        protected string activeState, prevState, nextState;
+        [SerializeField] protected string activeState, prevState, nextState;
         protected StateDefinitions.IStateManager _activeState, _prevState, _nextState;
 
         [SerializeField] private BearController bearController;
+
+        [SerializeField] private GameConfig gameConfig;
 
         private List<Item> items = new List<Item>();
 
         #region Getters
 
         public BearController BearController => bearController; // simplified getter
+
+        public GameConfig GameConfig => gameConfig;
 
         public string PrevState
         {

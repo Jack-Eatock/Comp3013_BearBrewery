@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace DistilledGames
 {
@@ -17,7 +18,9 @@ namespace DistilledGames
 
         private Dictionary<Vector2Int, Building> placedObjects = new Dictionary<Vector2Int, Building>();
 
-        public Building objectTest;
+        public BuildingData selectedBuilding;
+        private IEnumerator showingGrid;
+        private float gridTime = .3f;
 
         #region Getters
 
@@ -38,7 +41,6 @@ namespace DistilledGames
         private void Start()
         {
             GenerateGrid();
-            ShowGrid(false);
         }
 
         /// <summary>
@@ -50,7 +52,7 @@ namespace DistilledGames
             {
                 for (int x = tileMapFloor.cellBounds.xMin; x < tileMapFloor.cellBounds.xMax; x++)
                 {
-                    Debug.Log(tileMapFloor.GetTile(new Vector3Int(x, y, 0)) + " " + x + " " + y);
+                    //Debug.Log(tileMapFloor.GetTile(new Vector3Int(x, y, 0)) + " " + x + " " + y);
 
                     TileBase tile = tileMapFloor.GetTile(new Vector3Int(x, y, 0));
                     if (tile != null)
@@ -168,7 +170,36 @@ namespace DistilledGames
 
         public void ShowGrid(bool show)
         {
-            tileMapGrid.gameObject.SetActive(show);
+            if (showingGrid != null)
+                StopCoroutine(showingGrid);
+
+            showingGrid = ShowingGrid(show);
+            StartCoroutine(showingGrid);
+        }
+
+        private IEnumerator ShowingGrid(bool show)
+        {
+            float timeStarted = Time.time;
+            Color tmpColor = tileMapGrid.color;
+            while (Time.time - timeStarted <= gridTime)
+            {
+                float fractionComplete = (Time.time - timeStarted) / gridTime;
+
+                if (show)
+                    tmpColor.a = Mathf.Lerp(0, 1, fractionComplete);
+                else
+                    tmpColor.a = Mathf.Lerp(1, 0, fractionComplete);
+
+                tileMapGrid.color = tmpColor;
+
+                yield return new WaitForEndOfFrame();
+            }
+
+            if (show)
+                tmpColor.a = 1;
+            else
+                tmpColor.a = 0;
+            tileMapGrid.color = tmpColor;
         }
     }
 
