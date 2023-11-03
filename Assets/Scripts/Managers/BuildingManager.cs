@@ -181,6 +181,18 @@ namespace DistilledGames
         {
             float timeStarted = Time.time;
             Color tmpColor = tileMapGrid.color;
+
+            if (show)
+            {
+                if (tmpColor.a == 1)
+                    yield break;
+            }
+            else
+            {
+                if (tmpColor.a == 0)
+                    yield break;
+            }
+
             while (Time.time - timeStarted <= gridTime)
             {
                 float fractionComplete = (Time.time - timeStarted) / gridTime;
