@@ -13,6 +13,7 @@ public class BearController : MonoBehaviour
     [SerializeField] private float sprintMultiplier = 1.5f;  // multiplier for sprinting
     [SerializeField] private CircleCollider2D detectionCollider;
     private Rigidbody2D rig;
+    private SpriteRenderer rend;
 
     private Item heldItem;
     private int heldItemOriginalSortingOrder;
@@ -22,6 +23,7 @@ public class BearController : MonoBehaviour
     private void Awake()
     {
         rig = GetComponent<Rigidbody2D>();
+        rend = GetComponent<SpriteRenderer>();
     }
 
     void Update()
@@ -38,6 +40,7 @@ public class BearController : MonoBehaviour
         float currentSpeed = PlayerInputHandler.Instance.Sprint ? moveSpeed * sprintMultiplier : moveSpeed; // Adjust the speed based on sprinting state
         //transform.position += currentSpeed * Time.deltaTime * currentMoveDirection;
         rig.MovePosition(transform.position + (currentSpeed * Time.deltaTime * currentMoveDirection));
+        UpdateSortingOrder();
     }
 
     public void OnMove(Vector2 input)
@@ -76,6 +79,11 @@ public class BearController : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void UpdateSortingOrder()
+    {
+        rend.sortingOrder = 100 - Mathf.RoundToInt(transform.position.y);
     }
 
 
