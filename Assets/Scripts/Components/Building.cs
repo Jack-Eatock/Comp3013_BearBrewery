@@ -12,6 +12,8 @@ namespace DistilledGames
         public BuildingData data;
         private SpriteRenderer renderer;
 
+        public SpriteRenderer Rend => renderer;
+
         private void Awake()
         {
             renderer = GetComponent<SpriteRenderer>();
@@ -20,11 +22,6 @@ namespace DistilledGames
         public void OnPlaced()
         {
             Debug.Log("Test");
-        }
-
-        public void UpdateSortingOrder()
-        {
-            renderer.sortingOrder = 100 - Mathf.RoundToInt(transform.position.y);
         }
     }
 }

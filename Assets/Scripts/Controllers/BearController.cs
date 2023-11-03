@@ -35,9 +35,9 @@ public class BearController : MonoBehaviour
     private void FixedUpdate()
     {
         MovePlayer();
-        UpdateSortingOrder(rend, transform);
+        Helper.UpdateSortingOrder(rend, transform);
         if (heldItem != null)
-            UpdateSortingOrder(heldItem.Rend, heldItem.transform, 1);
+            Helper.UpdateSortingOrder(heldItem.Rend, heldItem.transform, 1);
     }
 
     #region Movement
@@ -144,12 +144,4 @@ public class BearController : MonoBehaviour
     }
 
     #endregion
-
-    /// <summary>
-    /// Ensures the bear is in the correct layer, to give the ilusion of the game being 3D
-    /// </summary>
-    private void UpdateSortingOrder(SpriteRenderer _rend, Transform _transform, int offset = 0)
-    {
-        _rend.sortingOrder = 100 - Mathf.RoundToInt(_transform.position.y) + offset;
-    }
 }

@@ -10,15 +10,13 @@ namespace DistilledGames
     {
         public static BuildingManager instance;
 
+        public BuildingData selectedBuilding;
+
         [SerializeField]
         private Tilemap tileMapFloor, tileMapGrid, tileMapWalls, tileMapPlacements;
-
         [SerializeField]
         private TileBase gridTile;
-
         private Dictionary<Vector2Int, Building> placedObjects = new Dictionary<Vector2Int, Building>();
-
-        public BuildingData selectedBuilding;
         private IEnumerator showingGrid;
         private float gridTime = .3f;
 
@@ -112,15 +110,9 @@ namespace DistilledGames
             if (!CanObjectBePlacedHere(coords, objToPlace))
                 return false;
 
-
-            SetSortingOrder(objToPlace);
+            Helper.UpdateSortingOrder(objToPlace.Rend, objToPlace.transform);
             placedObjects.Add(coords, objToPlace);
             return true;
-        }
-
-        private void SetSortingOrder(Building objToPlace)
-        {
-            objToPlace.UpdateSortingOrder();
         }
 
         /// <summary>
@@ -226,7 +218,4 @@ namespace DistilledGames
     {
         void OnPlaced();
     }
-
-
-
 }
