@@ -12,26 +12,32 @@ public class BearController : MonoBehaviour
     [SerializeField] private float moveSpeed;
     [SerializeField] private float sprintMultiplier = 1.5f;  // multiplier for sprinting
     [SerializeField] private CircleCollider2D detectionCollider;
+    private Rigidbody2D rig;
 
     private Item heldItem;
     private int heldItemOriginalSortingOrder;
 
-    private bool isSprinting = false; // Track if the bear is currently sprinting
     private Vector3 currentMoveDirection = Vector3.zero;
+
+    private void Awake()
+    {
+        rig = GetComponent<Rigidbody2D>();
+    }
 
     void Update()
     {
-        // Fetch sprint state directly from PlayerInputHandler
-        isSprinting = PlayerInputHandler.Instance.Sprint;
-
         // If you want the bear to perform some interaction when the Interact property is true
         if (PlayerInputHandler.Instance.Interact)
         {
             Interacting();
         }
+    }
 
-        float currentSpeed = isSprinting ? moveSpeed * sprintMultiplier : moveSpeed; // Adjust the speed based on sprinting state
-        transform.position += currentSpeed * Time.deltaTime * currentMoveDirection;
+    private void FixedUpdate()
+    {
+        float currentSpeed = PlayerInputHandler.Instance.Sprint ? moveSpeed * sprintMultiplier : moveSpeed; // Adjust the speed based on sprinting state
+        //transform.position += currentSpeed * Time.deltaTime * currentMoveDirection;
+        rig.MovePosition(transform.position + (currentSpeed * Time.deltaTime * currentMoveDirection));
     }
 
     public void OnMove(Vector2 input)
