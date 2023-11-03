@@ -70,9 +70,8 @@ namespace DistilledGames
             if (playerInteract.WasPressedThisFrame())
             {
                 interact = true;
-                Debug.Log("Interacting!");
             }
-            else
+            if (playerInteract.WasReleasedThisFrame())
             {
                 interact = false;
             }
