@@ -1,21 +1,27 @@
 using System;
 using UnityEngine;
 using DistilledGames.States;
+using System.Collections.Generic;
 
 namespace DistilledGames
 {
     public class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
-        [SerializeField]
-        protected string activeState, prevState, nextState;
+        [SerializeField] protected string activeState, prevState, nextState;
         protected StateDefinitions.IStateManager _activeState, _prevState, _nextState;
 
-        [SerializeField] private BearController bearController;
+        private BearController bearController;
+
+        [SerializeField] private GameConfig gameConfig;
+
+        private List<Item> items = new List<Item>();
 
         #region Getters
 
         public BearController BearController => bearController; // simplified getter
+
+        public GameConfig GameConfig => gameConfig;
 
         public string PrevState
         {
@@ -52,6 +58,7 @@ namespace DistilledGames
                 Instance = this;
             }
             DontDestroyOnLoad(this.gameObject);
+            bearController = GameObject.FindGameObjectWithTag("Bear").GetComponent<BearController>();
             nextState = StateDefinitions.GameStates.Normal.ToString();
             CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
         }
@@ -59,6 +66,31 @@ namespace DistilledGames
         private void Update()
         {
             _activeState.StateUpdate();
+        }
+
+        public void SetBearActive(bool state)
+        {
+            bearController.gameObject.SetActive(state);
+        }
+
+        public void SetItemsActive(bool state)
+        {
+            foreach(Item item in items)
+                item.gameObject.SetActive(state);
+        }
+
+        public void RegisterItem(Item item)
+        {
+            items.Add(item);
+        }
+
+        /// <summary>
+        /// When an item is destroyed we should de register it.
+        /// </summary>
+        /// <param name="item"></param>
+        public void DeRegisterItem(Item item)
+        {
+            items.Remove(item); 
         }
 
         #region Handling State

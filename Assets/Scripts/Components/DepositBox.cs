@@ -1,20 +1,29 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class DepositBox : MonoBehaviour
+namespace DistilledGames
 {
-    public void DepositItem(Item item)
+    public class DepositBox : Building, IInteractable
     {
-        if (item != null)
+        public bool TryToInsertItem(Item item)
         {
-            int itemValue = item.Value;
-            // Here, you can add logic to use the item value, e.g., adding to a player's score.
+            if (item != null)
+            {
+                int itemValue = item.Value;
+                // Here, you can add logic to use the item value, e.g., adding to a player's score.
 
-            Debug.Log("Item deposited with value: " + itemValue);
+                Debug.Log("Item deposited with value: " + itemValue);
 
-            // Delete the item
-            Destroy(item.gameObject);
+                // Delete the item
+                Destroy(item.gameObject);
+                return true;
+            }
+            return false;
+        }
+
+        public bool TryToRetreiveItem(out Item item)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }
+

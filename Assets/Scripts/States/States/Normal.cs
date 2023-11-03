@@ -1,21 +1,20 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Composites;
-using UnityEngine.UI;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
 namespace DistilledGames.States
 {
     public class Normal : BaseState
     {
+        private float timeOnEnter;
         public override void StateEnter()
         {
             base.StateEnter();
+            timeOnEnter = Time.time;
         }
 
         public override void StateExit()
         {
             base.StateExit();
+            MovementInput(Vector3.zero); // reset movement values;
         }
 
         public override void StateUpdate()
@@ -39,6 +38,8 @@ namespace DistilledGames.States
 
         public override StateDefinitions.ChangeInState EnterBuildMode()
         {
+            if (Time.time - timeOnEnter <= .5f)
+                return StateDefinitions.ChangeInState.NoChange;
             gameManager.NextState = StateDefinitions.GameStates.BuildingMode.ToString();
             return StateDefinitions.ChangeInState.NextState;
         }

@@ -29,14 +29,7 @@ namespace DistilledGames
 
         public bool Sprint => sprint;
         public bool Interact => interact;
-
-        public Vector2 PrimaryCursorPosition
-        {
-            get
-            {
-                return primaryCursorPosition;
-            }
-        }
+        public Vector2 PrimaryCursorPosition => primaryCursorPosition;
 
         #endregion
 

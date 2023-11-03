@@ -1,70 +1,52 @@
 using DistilledGames;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Composites;
-using UnityEngine.UI;
-using UnityEngine.Windows;
 
 public class BearController : MonoBehaviour
 {
     [SerializeField] private float moveSpeed;
     [SerializeField] private float sprintMultiplier = 1.5f;  // multiplier for sprinting
     [SerializeField] private CircleCollider2D detectionCollider;
-    [SerializeField] private Image circleImage;
+    [SerializeField] private LayerMask interactionLayer;
+    [SerializeField] private float timeBetweenInteractions = .4f;
+
+    private Rigidbody2D rig;
+    private SpriteRenderer rend;
 
     private bool isItemHeld = false;
     private Item heldItem;
     private int heldItemOriginalSortingOrder;
-
-    private bool isSprinting = false; // Track if the bear is currently sprinting
     private Vector3 currentMoveDirection = Vector3.zero;
-
-    private float interactHoldDuration = 0.5f; // the duration after which the button press is considered a hold
-    private float timeSinceInteractPressed = 0f;
-    private bool interactPressed = false;
-    private bool interactHoldTriggered = false;
-
+    private float timeLastInteracted = 0;
     public bool IsItemHeld => isItemHeld;
     public Item HeldItem => heldItem;
 
+    private void Awake()
+    {
+        rig = GetComponent<Rigidbody2D>();
+        rend = GetComponent<SpriteRenderer>();
+    }
+
     void Update()
     {
-        //Get Sprint state directly from PlayerInputHandler
-        isSprinting = PlayerInputHandler.Instance.Sprint;
+       if (PlayerInputHandler.Instance.Interact)
+            Interact();  // If the button was released before it's considered a hold
+    }
 
-        // Checking for InteractHold
-        if (PlayerInputHandler.Instance.Interact && !interactPressed)
-        {
-            interactPressed = true;
-            interactHoldTriggered = false; // Reset this flag on a new button press
-            timeSinceInteractPressed = 0f;
-        }
-        else if (!PlayerInputHandler.Instance.Interact && interactPressed)
-        {
-            interactPressed = false;
-            if (timeSinceInteractPressed < interactHoldDuration)
-            {
-                Debug.Log("Interacting");
-                Interacting();  // If the button was released before it's considered a hold
-            }
-        }
+    private void FixedUpdate()
+    {
+        MovePlayer();
+        Helper.UpdateSortingOrder(rend, transform);
+        if (heldItem != null)
+            Helper.UpdateSortingOrder(heldItem.Rend, heldItem.transform, 1);
+    }
 
-        if (interactPressed)
-        {
-            timeSinceInteractPressed += Time.deltaTime;
+    #region Movement
 
-            if (timeSinceInteractPressed >= interactHoldDuration && !interactHoldTriggered)
-            {
-                Debug.Log("Interacting Held");
-                InteractHold(); // Handle hold interaction
-                interactHoldTriggered = true; // Set to true to avoid triggering the hold multiple times
-            }
-        }
-
-        float currentSpeed = isSprinting ? moveSpeed * sprintMultiplier : moveSpeed; // Adjust the speed based on sprinting state
-        transform.position += currentSpeed * Time.deltaTime * currentMoveDirection;
+    private void MovePlayer()
+    {
+        // Move using physics to allow collisions etc.
+        float currentSpeed = PlayerInputHandler.Instance.Sprint ? moveSpeed * sprintMultiplier : moveSpeed; // Adjust the speed based on sprinting state
+        rig.MovePosition(transform.position + (currentSpeed * Time.deltaTime * currentMoveDirection));
     }
 
     public void OnMove(Vector2 input)
@@ -72,17 +54,54 @@ public class BearController : MonoBehaviour
         currentMoveDirection = new Vector3(input.x, input.y, 0);
     }
 
-    public void Interacting()
+    #endregion
+
+    #region Interactions
+
+    public void Interact()
     {
+        if (Time.time - timeLastInteracted < timeBetweenInteractions)
+            return;
+
+        timeLastInteracted = Time.time;
+        Debug.Log("Interacting");
+
+        // The detection collider is on the interaction layer so it will only collide with other interactions.
+        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(detectionCollider.transform.position, detectionCollider.radius, interactionLayer);
         if (heldItem != null)
         {
-            DropHeldItem();
+            if (TryInsertItem(hitColliders)) {}
+            else
+                DropHeldItem();
         }
         else
-        {
-            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(detectionCollider.transform.position, detectionCollider.radius);
             TryPickUpItem(hitColliders);
+    }
+
+    private bool TryInsertItem(Collider2D[] hitColliders)
+    {
+        IInteractable interactable;
+        bool foundInteractable = false;
+        foreach (var hitCollider in hitColliders)
+        {
+            // ignore the item being held.
+            if (hitCollider.transform.parent == heldItem.transform)
+                continue;
+
+            if (hitCollider.transform.parent.TryGetComponent(out interactable))
+            {
+                foundInteractable = true;
+                // Found an interactable object
+                // Try inserting it. If it works great, otherwise keep checking.
+                if (interactable.TryToInsertItem(heldItem))
+                {
+                    heldItem = null;
+                    return true;
+                }
+            }
         }
+        // Even if we cant interact we dont want them to drop an ingredient when trying to interact with a building. So do nothing.
+        return foundInteractable;
     }
 
     private void DropHeldItem()
@@ -97,56 +116,21 @@ public class BearController : MonoBehaviour
 
     private void TryPickUpItem(Collider2D[] hitColliders)
     {
+        IInteractable interactable;
+        Item itemRetrieved = null;
         foreach (var hitCollider in hitColliders)
         {
-            if (TryPickUpFromBoiler(hitCollider)) return;
-            if (TryPickUpInteractableItem(hitCollider)) break;
-            if (TryPickUpFromDepot(hitCollider)) break;
-        }
-    }
-
-    private bool TryPickUpFromBoiler(Collider2D hitCollider)
-    {
-        Boiler boiler = hitCollider.GetComponent<Boiler>();
-        if (boiler != null)
-        {
-            Item outputItem = boiler.RemoveItem();
-            if (outputItem != null)
+            if (hitCollider.transform.parent.TryGetComponent(out interactable))
             {
-                PickUpItem(outputItem);
-                Debug.Log("Picked up an item from the boiler!");
-                return true;
+                // Found an interactable item.
+                // Try to retrieve item. If not possible keep checking other things.
+                if (interactable.TryToRetreiveItem(out itemRetrieved))
+                {
+                    PickUpItem(itemRetrieved);
+                    break;
+                }
             }
         }
-        return false;
-    }
-
-    private bool TryPickUpInteractableItem(Collider2D hitCollider)
-    {
-        Item item = hitCollider.GetComponent<Item>();
-        if (item != null && item.IsInteractable)
-        {
-            PickUpItem(item);
-            Debug.Log("Picked up an interactable item!");
-            return true;
-        }
-        return false;
-    }
-
-    private bool TryPickUpFromDepot(Collider2D hitCollider)
-    {
-        Depot depot = hitCollider.GetComponent<Depot>();
-        if (depot != null)
-        {
-            Item dispensedItem = depot.DispenseItem();
-            if (dispensedItem != null)
-            {
-                PickUpItem(dispensedItem);
-                Debug.Log("Picked up an item from depot!");
-                return true;
-            }
-        }
-        return false;
     }
 
     private void PickUpItem(Item item)
@@ -159,39 +143,5 @@ public class BearController : MonoBehaviour
         isItemHeld = true;
     }
 
-
-
-
-
-
-    public void InteractHold()
-    {
-        if (isItemHeld)
-        {
-            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(detectionCollider.transform.position, detectionCollider.radius);
-            foreach (var hitCollider in hitColliders)
-            {
-                DepositBox depositBox = hitCollider.GetComponent<DepositBox>();
-                if (depositBox != null)
-                {
-                    // Deposit item to the box and check its value
-                    depositBox.DepositItem(heldItem);
-                    heldItem = null;
-                    isItemHeld = false;
-                    break;
-                }
-
-                Boiler boiler = hitCollider.GetComponent<Boiler>();
-                if (boiler != null)
-                {
-                    // Add item to the boiler for processing
-                    boiler.AddItem(heldItem);
-                    heldItem = null;
-                    isItemHeld = false;
-                    break;
-                }
-            }
-        }
-    }
-
+    #endregion
 }

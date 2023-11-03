@@ -1,20 +1,28 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Composites;
-using UnityEngine.UI;
 
 namespace DistilledGames.States
 {
     public class BuildingMode : BaseState
     {
+        private float timeEntered;
+
         public override void StateEnter()
         {
-            base.StateExit();
+            base.StateEnter();
+            timeEntered = Time.time;
+            BuildingManager.instance.ShowGrid(true);
+            gameManager.SetBearActive(false);
+            gameManager.SetItemsActive(false);
+            MenuManager.Instance.ShowMenu(MenuManager.Menus.BuildingMenu);
         }
 
         public override void StateExit()
         {
             base.StateExit();
+            BuildingManager.instance.ShowGrid(false);
+            gameManager.SetBearActive(true);
+            gameManager.SetItemsActive(true);
+            MenuManager.Instance.HideMenu(MenuManager.Menus.BuildingMenu);
         }
 
         public override void StateUpdate()
@@ -30,6 +38,15 @@ namespace DistilledGames.States
         public override StateDefinitions.ChangeInState MovementInput(Vector2 input)
         {
             return StateDefinitions.ChangeInState.NoChange;
+        }
+
+        public override StateDefinitions.ChangeInState EnterBuildMode()
+        {
+            if (Time.time - timeEntered <= .5f)
+                return StateDefinitions.ChangeInState.NoChange;
+
+            gameManager.NextState = StateDefinitions.GameStates.Normal.ToString();
+            return StateDefinitions.ChangeInState.NextState;
         }
     }
 }
