@@ -8,6 +8,7 @@ namespace DistilledGames
     [Serializable]
     public class Building : MonoBehaviour, IPlaceableObject
     {
+        [HideInInspector]
         public BuildingData data;
         private SpriteRenderer renderer;
 

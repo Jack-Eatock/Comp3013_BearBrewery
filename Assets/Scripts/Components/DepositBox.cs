@@ -1,12 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace DistilledGames
 {
-    public class DepositBox : MonoBehaviour
+    public class DepositBox : Building, IInteractable
     {
-        public void DepositItem(Item item)
+        public bool TryToInsertItem(Item item)
         {
             if (item != null)
             {
@@ -17,7 +15,14 @@ namespace DistilledGames
 
                 // Delete the item
                 Destroy(item.gameObject);
+                return true;
             }
+            return false;
+        }
+
+        public bool TryToRetreiveItem(out Item item)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

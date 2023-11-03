@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace DistilledGames
 {
-    public class Depot : MonoBehaviour
+    public class Depot : Building, IInteractable
     {
         [SerializeField] private Item itemTypePrefab; // Prefab of the item type you want to generate
         [SerializeField] private float dispenseRate; // items per minute
@@ -32,17 +32,22 @@ namespace DistilledGames
             }
         }
 
-        public Item DispenseItem()
+        public bool TryToInsertItem(Item item)
         {
+            return false;
+        }
+
+        public bool TryToRetreiveItem(out Item item)
+        {
+            item = null;
             if (itemsHeld > 0)
             {
                 itemsHeld--;
                 Debug.Log("Depot has: " + itemsHeld + " items remaining");
-                return Instantiate(itemTypePrefab, transform.position, Quaternion.identity); // creates the item at the Depot's position
-
+                item = Instantiate(itemTypePrefab, transform.position, Quaternion.identity); // creates the item at the Depot's position
+                return true;
             }
-
-            return null;
+            return false;
         }
     }
 }

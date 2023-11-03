@@ -11,7 +11,7 @@ namespace DistilledGames
         [SerializeField] protected string activeState, prevState, nextState;
         protected StateDefinitions.IStateManager _activeState, _prevState, _nextState;
 
-        [SerializeField] private BearController bearController;
+        private BearController bearController;
 
         [SerializeField] private GameConfig gameConfig;
 
@@ -58,6 +58,7 @@ namespace DistilledGames
                 Instance = this;
             }
             DontDestroyOnLoad(this.gameObject);
+            bearController = GameObject.FindGameObjectWithTag("Bear").GetComponent<BearController>();
             nextState = StateDefinitions.GameStates.Normal.ToString();
             CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
         }
