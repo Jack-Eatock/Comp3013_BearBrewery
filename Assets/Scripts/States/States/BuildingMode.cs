@@ -10,6 +10,12 @@ namespace DistilledGames.States
         {
             base.StateEnter();
             timeEntered = Time.time;
+            BuildingMenu.instance.SwitchPanel(BuildingMenu.BuildingMenuPanels.BuildingOptions);
+
+            if (gameManager.PrevState == StateDefinitions.GameStates.BuildingModePlacing.ToString())
+                return;
+            Debug.Log("AAA");
+
             BuildingManager.instance.ShowGrid(true);
             gameManager.SetBearActive(false);
             gameManager.SetItemsActive(false);
@@ -19,6 +25,12 @@ namespace DistilledGames.States
         public override void StateExit()
         {
             base.StateExit();
+
+            if (gameManager.NextState == StateDefinitions.GameStates.BuildingModePlacing.ToString())
+                return;
+
+            Debug.Log("AAA");
+
             BuildingManager.instance.ShowGrid(false);
             gameManager.SetBearActive(true);
             gameManager.SetItemsActive(true);

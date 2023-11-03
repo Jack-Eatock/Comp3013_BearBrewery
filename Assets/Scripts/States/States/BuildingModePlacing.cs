@@ -13,17 +13,32 @@ namespace DistilledGames.States
         public override void StateEnter()
         {
             base.StateEnter();
-            BuildingManager.instance.ShowGrid(true);
-            gameManager.SetBearActive(false);
-            gameManager.SetItemsActive(false);
             timeEntered = Time.time;
             buildingPlacing = GameObject.Instantiate(BuildingManager.instance.selectedBuilding.BuidlingPrefab);
             buildingPlacing.data = BuildingManager.instance.selectedBuilding;
+            BuildingMenu.instance.SwitchPanel(BuildingMenu.BuildingMenuPanels.PlacingBuilding);
+
+            if (gameManager.PrevState == StateDefinitions.GameStates.BuildingMode.ToString())
+                return;
+
+            BuildingManager.instance.ShowGrid(true);
+            gameManager.SetBearActive(false);
+            gameManager.SetItemsActive(false);
+            MenuManager.Instance.ShowMenu(MenuManager.Menus.BuildingMenu);
+
+            Debug.Log("AAA"  + gameManager.PrevState);
+
         }
 
         public override void StateExit()
         {
             base.StateExit();
+
+            if (gameManager.NextState == StateDefinitions.GameStates.BuildingMode.ToString())
+                return;
+
+            Debug.Log("AAA");
+
             BuildingManager.instance.ShowGrid(false);
             gameManager.SetBearActive(true);
             gameManager.SetItemsActive(true);
