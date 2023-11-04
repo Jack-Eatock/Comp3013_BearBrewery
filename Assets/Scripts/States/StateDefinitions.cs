@@ -20,6 +20,8 @@ namespace DistilledGames
 
             ChangeInState PrimaryInteractionPressed();
 
+            ChangeInState SecondaryInteractionPressed();
+
             ChangeInState EnterBuildMode();
 
             ChangeInState MovementInput(Vector2 input);

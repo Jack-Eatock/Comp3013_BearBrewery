@@ -17,6 +17,7 @@ namespace DistilledGames
         private InputAction playerSprint;
         private InputAction playerInteract;
         private InputAction enterBuildMode;
+        private InputAction secondaryCursorInteraction;
 
         private Vector2 primaryCursorPosition;
         private Vector2 movementInput;
@@ -54,6 +55,7 @@ namespace DistilledGames
             playerSprint = playerInput.actions["Sprint"];
             playerInteract = playerInput.actions["Interaction"];
             enterBuildMode = playerInput.actions["EnterBuildMode"];
+            secondaryCursorInteraction = playerInput.actions["SecondaryCursorClick"];
         }
 
         private void Update()
@@ -87,6 +89,7 @@ namespace DistilledGames
             primaryCursorInteraction.performed += InputPrimaryCursorInteraction;
             primaryCursorPos.performed += InputPrimaryCursorPos;
             enterBuildMode.performed += InputEnterBuildMode;
+            secondaryCursorInteraction.performed += InputSecondaryCursorInteraction;
         }
 
         private void OnDisable()
@@ -99,6 +102,7 @@ namespace DistilledGames
             primaryCursorInteraction.performed -= InputPrimaryCursorInteraction;
             primaryCursorPos.performed -= InputPrimaryCursorPos;
             enterBuildMode.performed -= InputEnterBuildMode;
+            secondaryCursorInteraction.performed -= InputSecondaryCursorInteraction;
         }
 
         private void InputMovement(InputAction.CallbackContext ctx)
@@ -123,6 +127,15 @@ namespace DistilledGames
             Debug.Log("Enter Build Mode Pressed");
             gamemanager.CheckIfStateShouldChange(gamemanager.ActiveState.EnterBuildMode());
         }
+
+        private void InputSecondaryCursorInteraction(InputAction.CallbackContext ctx)
+        {
+            Debug.Log("Secondary CLICK");
+            gamemanager.CheckIfStateShouldChange(gamemanager.ActiveState.PrimaryInteractionPressed());
+        }
+
+
+
 
         #region Device events 
 

@@ -14,8 +14,7 @@ namespace DistilledGames.States
         {
             base.StateEnter();
             timeEntered = Time.time;
-            buildingPlacing = GameObject.Instantiate(BuildingManager.instance.selectedBuilding.BuidlingPrefab);
-            buildingPlacing.data = BuildingManager.instance.selectedBuilding;
+            SpawnBuilding();
             BuildingMenu.instance.SwitchPanel(BuildingMenu.BuildingMenuPanels.PlacingBuilding);
 
             if (gameManager.PrevState == StateDefinitions.GameStates.BuildingMode.ToString())
@@ -72,6 +71,15 @@ namespace DistilledGames.States
             if (BuildingManager.instance.PlaceObject(new Vector2Int(currentSelectedCoords.x, currentSelectedCoords.y), buildingPlacing))
             {
                 Debug.Log("placed");
+
+                // Placing multiple?
+                if (PlayerInputHandler.Instance.Sprint)
+                {
+                    SpawnBuilding();
+                    return StateDefinitions.ChangeInState.NoChange;
+                }
+      
+
                 gameManager.NextState = StateDefinitions.GameStates.BuildingMode.ToString();
                 return StateDefinitions.ChangeInState.NextState;
             }
@@ -82,6 +90,12 @@ namespace DistilledGames.States
           
 
             return StateDefinitions.ChangeInState.NoChange;
+        }
+
+        private void SpawnBuilding()
+        {
+            buildingPlacing = GameObject.Instantiate(BuildingManager.instance.selectedBuilding.BuidlingPrefab);
+            buildingPlacing.data = BuildingManager.instance.selectedBuilding;
         }
 
         public override StateDefinitions.ChangeInState MovementInput(Vector2 input)
@@ -97,6 +111,13 @@ namespace DistilledGames.States
             GameObject.Destroy(buildingPlacing.gameObject);
 
             gameManager.NextState = StateDefinitions.GameStates.Normal.ToString();
+            return StateDefinitions.ChangeInState.NextState;
+        }
+
+        public override StateDefinitions.ChangeInState SecondaryInteractionPressed()
+        {
+            GameObject.Destroy(buildingPlacing.gameObject);
+            gameManager.NextState = StateDefinitions.GameStates.BuildingMode.ToString();
             return StateDefinitions.ChangeInState.NextState;
         }
     }

@@ -34,6 +34,11 @@ namespace DistilledGames.States
             return StateDefinitions.ChangeInState.NoChange;
         }
 
+        public virtual StateDefinitions.ChangeInState SecondaryInteractionPressed()
+        {
+            return StateDefinitions.ChangeInState.NoChange;
+        }
+
         public virtual StateDefinitions.ChangeInState MovementInput(Vector2 input)
         {
             return StateDefinitions.ChangeInState.NoChange;
