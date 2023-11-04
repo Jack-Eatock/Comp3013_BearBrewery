@@ -8,9 +8,13 @@ namespace DistilledGames
     public class CombinerRecipe
     {
         public Item inputItemPrefab1;
+        public int inputItem1Count; // Amount of inputItemPrefab1 needed
         public Item inputItemPrefab2;
+        public int inputItem2Count; // Amount of inputItemPrefab2 needed
         public Item outputItemPrefab;
+        public int outputItemCount; // Amount of items produced
     }
+
 
     public class Combiner : Building, IInteractable
     {
@@ -49,13 +53,41 @@ namespace DistilledGames
             isProcessing = true;
             yield return new WaitForSeconds(processingTime);
 
-            inputItem1Count--;
-            inputItem2Count--;
-            outputItemCount++;
-            Debug.Log($"Processed items. Items in combiner: {inputItem1Count} of type 1, {inputItem2Count} of type 2. Items ready: {outputItemCount}");
+            // Find a valid recipe
+            CombinerRecipe validRecipe = null;
+            foreach (var recipe in recipes)
+            {
+                if (inputItem1Count >= recipe.inputItem1Count && inputItem2Count >= recipe.inputItem2Count)
+                {
+                    validRecipe = recipe;
+                    break;
+                }
+            }
+
+            if (validRecipe != null)
+            {
+                // Consume the input items according to the recipe
+                inputItem1Count -= validRecipe.inputItem1Count;
+                inputItem2Count -= validRecipe.inputItem2Count;
+
+                // Produce the output items
+                outputItemCount += validRecipe.outputItemCount;
+
+                // Log the processing
+                Debug.Log($"Processed items. Items in combiner: {inputItem1Count} of type 1, {inputItem2Count} of type 2. {validRecipe.outputItemCount} new '{validRecipe.outputItemPrefab.name}' added. Total items ready: {outputItemCount}");
+
+                // Store the output prefab from the recipe for retrieval
+                outputItemPrefab = validRecipe.outputItemPrefab;
+            }
+            else
+            {
+                // No valid recipe found
+                Debug.LogError("No valid recipe found with the current items in the combiner.");
+            }
 
             isProcessing = false;
         }
+
 
         public bool TryToInsertItem(Item item)
         {
@@ -69,14 +101,20 @@ namespace DistilledGames
                     if (recipe.Key.Item1 == recipe.Key.Item2)
                     {
                         // If so, distribute the items evenly across both inputs
-                        if (inputItem1Count <= inputItem2Count && inputItem1Count < maxCapacity)
+                        if (inputItem1Count < inputItem2Count && inputItem1Count < maxCapacity)
                         {
                             inputItem1Count++;
                             itemAdded = true;
                         }
-                        else if (inputItem2Count < maxCapacity)
+                        else if (inputItem2Count < inputItem1Count && inputItem2Count < maxCapacity)
                         {
                             inputItem2Count++;
+                            itemAdded = true;
+                        }
+                        // If both are equal, add to the first slot if not at max capacity
+                        else if (inputItem1Count == inputItem2Count && inputItem1Count < maxCapacity)
+                        {
+                            inputItem1Count++;
                             itemAdded = true;
                         }
                     }
