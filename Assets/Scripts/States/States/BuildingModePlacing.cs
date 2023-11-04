@@ -9,6 +9,8 @@ namespace DistilledGames.States
         private List<Vector3Int> requiredCoords = new List<Vector3Int>();
         private Vector3Int currentSelectedCoords;
         private float timeEntered;
+        private bool rotated = false;
+        private int rotationIndex = 0;
 
         public override void StateEnter()
         {
@@ -92,6 +94,9 @@ namespace DistilledGames.States
         {
             buildingPlacing = GameObject.Instantiate(BuildingManager.instance.selectedBuilding.BuidlingPrefab);
             buildingPlacing.data = BuildingManager.instance.selectedBuilding;
+
+            if (rotated)
+                buildingPlacing.SetRotation(rotationIndex);
         }
 
         public override StateDefinitions.ChangeInState MovementInput(Vector2 input)
@@ -121,7 +126,11 @@ namespace DistilledGames.States
         {
             // Try to rotate building
             if (buildingPlacing.Rotate())
+            {
+                rotated = true;
+                rotationIndex = buildingPlacing.GetRotationIndex();
                 Debug.Log("Rotated");
+            }
             else
                 Debug.Log("Cant rotate");
             return StateDefinitions.ChangeInState.NoChange;

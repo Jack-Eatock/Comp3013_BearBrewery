@@ -22,7 +22,8 @@ namespace DistilledGames
 
         public bool TryToRetreiveItem(out Item item)
         {
-            throw new System.NotImplementedException();
+            item = null;
+            return false;
         }
     }
 }

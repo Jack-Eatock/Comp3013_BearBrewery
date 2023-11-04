@@ -40,5 +40,21 @@ namespace DistilledGames
             }
             return false;
         }
+
+        public virtual bool SetRotation(int index)
+        {
+            if (rotations.Length > 0)
+            {
+                currentRotation = index;
+                renderer.sprite = rotations[currentRotation];
+                return true;
+            }
+            return false;
+        }
+
+        public virtual int GetRotationIndex()
+        {
+            return currentRotation;
+        }
     }
 }
