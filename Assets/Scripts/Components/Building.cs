@@ -12,6 +12,9 @@ namespace DistilledGames
         public BuildingData data;
         private SpriteRenderer renderer;
 
+        private int currentRotation = 0;
+        [SerializeField] private Sprite[] rotations;
+
         public SpriteRenderer Rend => renderer;
 
         private void Awake()
@@ -22,6 +25,36 @@ namespace DistilledGames
         public void OnPlaced()
         {
             Debug.Log("Test");
+        }
+
+        public virtual bool Rotate()
+        {
+            if (rotations.Length > 0)
+            {
+                if (currentRotation + 1 >= rotations.Length)
+                    currentRotation = 0;
+                else
+                    currentRotation++;
+                renderer.sprite = rotations[currentRotation];
+                return true;
+            }
+            return false;
+        }
+
+        public virtual bool SetRotation(int index)
+        {
+            if (rotations.Length > 0)
+            {
+                currentRotation = index;
+                renderer.sprite = rotations[currentRotation];
+                return true;
+            }
+            return false;
+        }
+
+        public virtual int GetRotationIndex()
+        {
+            return currentRotation;
         }
     }
 }

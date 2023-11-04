@@ -10,6 +10,11 @@ namespace DistilledGames.States
         {
             base.StateEnter();
             timeEntered = Time.time;
+            BuildingMenu.instance.SwitchPanel(BuildingMenu.BuildingMenuPanels.BuildingOptions);
+
+            if (gameManager.PrevState == StateDefinitions.GameStates.BuildingModePlacing.ToString())
+                return;
+
             BuildingManager.instance.ShowGrid(true);
             gameManager.SetBearActive(false);
             gameManager.SetItemsActive(false);
@@ -19,6 +24,10 @@ namespace DistilledGames.States
         public override void StateExit()
         {
             base.StateExit();
+
+            if (gameManager.NextState == StateDefinitions.GameStates.BuildingModePlacing.ToString())
+                return;
+
             BuildingManager.instance.ShowGrid(false);
             gameManager.SetBearActive(true);
             gameManager.SetItemsActive(true);
@@ -32,6 +41,23 @@ namespace DistilledGames.States
 
         public override StateDefinitions.ChangeInState PrimaryInteractionPressed()
         {
+            return StateDefinitions.ChangeInState.NoChange;
+        }
+
+        public override StateDefinitions.ChangeInState SecondaryInteractionPressed()
+        {
+            // Check if they clicked on a building.
+            RaycastHit2D hit;
+            hit = Physics2D.GetRayIntersection(Camera.main.ScreenPointToRay(PlayerInputHandler.Instance.PrimaryCursorPosition));
+            if (!hit.collider)
+                return StateDefinitions.ChangeInState.NoChange;
+
+            Debug.Log(hit.collider.transform.name);
+            Building building = hit.collider.transform.root.GetComponentInChildren<Building>();
+
+            if (building != null)
+                BuildingManager.instance.DeleteObject(building);
+
             return StateDefinitions.ChangeInState.NoChange;
         }
 

@@ -58,6 +58,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "SecondaryCursorClick",
+                    "type": "Button",
+                    "id": "00ab0257-3c5b-4f38-8d8d-ffce618bf5f7",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Press",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Rotate",
+                    "type": "Button",
+                    "id": "257b167c-c21f-47c9-8774-a2271e90e451",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -223,6 +241,28 @@
                     "processors": "",
                     "groups": "PlayerControls",
                     "action": "Interaction",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "beeb31fe-11b9-4008-b958-49e2172c3ba4",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "PlayerControls",
+                    "action": "SecondaryCursorClick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0777a6e1-a3bf-40ab-a4ff-099da2df4f3b",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "PlayerControls",
+                    "action": "Rotate",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

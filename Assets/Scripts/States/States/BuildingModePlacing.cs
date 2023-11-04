@@ -9,24 +9,36 @@ namespace DistilledGames.States
         private List<Vector3Int> requiredCoords = new List<Vector3Int>();
         private Vector3Int currentSelectedCoords;
         private float timeEntered;
+        private bool rotated = false;
+        private int rotationIndex = 0;
 
         public override void StateEnter()
         {
             base.StateEnter();
+            timeEntered = Time.time;
+            SpawnBuilding();
+            BuildingMenu.instance.SwitchPanel(BuildingMenu.BuildingMenuPanels.PlacingBuilding);
+
+            if (gameManager.PrevState == StateDefinitions.GameStates.BuildingMode.ToString())
+                return;
+
             BuildingManager.instance.ShowGrid(true);
             gameManager.SetBearActive(false);
             gameManager.SetItemsActive(false);
-            timeEntered = Time.time;
-            buildingPlacing = GameObject.Instantiate(BuildingManager.instance.selectedBuilding.BuidlingPrefab);
-            buildingPlacing.data = BuildingManager.instance.selectedBuilding;
+            MenuManager.Instance.ShowMenu(MenuManager.Menus.BuildingMenu);
         }
 
         public override void StateExit()
         {
             base.StateExit();
+
+            if (gameManager.NextState == StateDefinitions.GameStates.BuildingMode.ToString())
+                return;
+
             BuildingManager.instance.ShowGrid(false);
             gameManager.SetBearActive(true);
             gameManager.SetItemsActive(true);
+            MenuManager.Instance.HideMenu(MenuManager.Menus.BuildingMenu);
         }
 
         public override void StateUpdate()
@@ -57,6 +69,15 @@ namespace DistilledGames.States
             if (BuildingManager.instance.PlaceObject(new Vector2Int(currentSelectedCoords.x, currentSelectedCoords.y), buildingPlacing))
             {
                 Debug.Log("placed");
+
+                // Placing multiple?
+                if (PlayerInputHandler.Instance.Sprint)
+                {
+                    SpawnBuilding();
+                    return StateDefinitions.ChangeInState.NoChange;
+                }
+      
+
                 gameManager.NextState = StateDefinitions.GameStates.BuildingMode.ToString();
                 return StateDefinitions.ChangeInState.NextState;
             }
@@ -67,6 +88,15 @@ namespace DistilledGames.States
           
 
             return StateDefinitions.ChangeInState.NoChange;
+        }
+
+        private void SpawnBuilding()
+        {
+            buildingPlacing = GameObject.Instantiate(BuildingManager.instance.selectedBuilding.BuidlingPrefab);
+            buildingPlacing.data = BuildingManager.instance.selectedBuilding;
+
+            if (rotated)
+                buildingPlacing.SetRotation(rotationIndex);
         }
 
         public override StateDefinitions.ChangeInState MovementInput(Vector2 input)
@@ -83,6 +113,27 @@ namespace DistilledGames.States
 
             gameManager.NextState = StateDefinitions.GameStates.Normal.ToString();
             return StateDefinitions.ChangeInState.NextState;
+        }
+
+        public override StateDefinitions.ChangeInState SecondaryInteractionPressed()
+        {
+            GameObject.Destroy(buildingPlacing.gameObject);
+            gameManager.NextState = StateDefinitions.GameStates.BuildingMode.ToString();
+            return StateDefinitions.ChangeInState.NextState;
+        }
+
+        public override StateDefinitions.ChangeInState RotateInputPressed()
+        {
+            // Try to rotate building
+            if (buildingPlacing.Rotate())
+            {
+                rotated = true;
+                rotationIndex = buildingPlacing.GetRotationIndex();
+                Debug.Log("Rotated");
+            }
+            else
+                Debug.Log("Cant rotate");
+            return StateDefinitions.ChangeInState.NoChange;
         }
     }
 }

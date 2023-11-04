@@ -17,6 +17,8 @@ namespace DistilledGames
         private InputAction playerSprint;
         private InputAction playerInteract;
         private InputAction enterBuildMode;
+        private InputAction secondaryCursorInteraction;
+        private InputAction rotate;
 
         private Vector2 primaryCursorPosition;
         private Vector2 movementInput;
@@ -54,6 +56,8 @@ namespace DistilledGames
             playerSprint = playerInput.actions["Sprint"];
             playerInteract = playerInput.actions["Interaction"];
             enterBuildMode = playerInput.actions["EnterBuildMode"];
+            secondaryCursorInteraction = playerInput.actions["SecondaryCursorClick"];
+            rotate = playerInput.actions["Rotate"];
         }
 
         private void Update()
@@ -87,6 +91,8 @@ namespace DistilledGames
             primaryCursorInteraction.performed += InputPrimaryCursorInteraction;
             primaryCursorPos.performed += InputPrimaryCursorPos;
             enterBuildMode.performed += InputEnterBuildMode;
+            secondaryCursorInteraction.performed += InputSecondaryCursorInteraction;
+            rotate.performed += InputRotate;
         }
 
         private void OnDisable()
@@ -99,6 +105,8 @@ namespace DistilledGames
             primaryCursorInteraction.performed -= InputPrimaryCursorInteraction;
             primaryCursorPos.performed -= InputPrimaryCursorPos;
             enterBuildMode.performed -= InputEnterBuildMode;
+            secondaryCursorInteraction.performed -= InputSecondaryCursorInteraction;
+            rotate.performed -= InputRotate;
         }
 
         private void InputMovement(InputAction.CallbackContext ctx)
@@ -123,6 +131,19 @@ namespace DistilledGames
             Debug.Log("Enter Build Mode Pressed");
             gamemanager.CheckIfStateShouldChange(gamemanager.ActiveState.EnterBuildMode());
         }
+
+        private void InputSecondaryCursorInteraction(InputAction.CallbackContext ctx)
+        {
+            Debug.Log("Secondary CLICK");
+            gamemanager.CheckIfStateShouldChange(gamemanager.ActiveState.SecondaryInteractionPressed());
+        }
+
+        private void InputRotate(InputAction.CallbackContext ctx)
+        {
+            Debug.Log("Secondary CLICK");
+            gamemanager.CheckIfStateShouldChange(gamemanager.ActiveState.RotateInputPressed());
+        }
+
 
         #region Device events 
 

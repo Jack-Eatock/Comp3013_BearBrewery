@@ -115,6 +115,20 @@ namespace DistilledGames
             return true;
         }
 
+        public void DeleteObject(Building objectToDelete)
+        {
+            Debug.Log("DELETE");
+            foreach (KeyValuePair<Vector2Int, Building> keyPair in placedObjects)
+            {
+                if (keyPair.Value == objectToDelete)
+                {
+                    placedObjects.Remove(keyPair.Key);
+                    GameObject.Destroy(objectToDelete.gameObject);
+                    return;
+                }
+            }
+        }
+
         /// <summary>
         /// Checks if a specific object can be placed at specific coords.
         /// </summary>
@@ -217,5 +231,7 @@ namespace DistilledGames
     public interface IPlaceableObject
     {
         void OnPlaced();
+
+        bool Rotate();
     }
 }

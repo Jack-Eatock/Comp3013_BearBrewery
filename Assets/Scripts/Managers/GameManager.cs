@@ -76,7 +76,15 @@ namespace DistilledGames
         public void SetItemsActive(bool state)
         {
             foreach(Item item in items)
-                item.gameObject.SetActive(state);
+            {
+                if (item.gameObject == null)
+                {
+                    Debug.Log("Missing Item");
+                }
+                else
+                    item.gameObject.SetActive(state);
+            }
+               
         }
 
         public void RegisterItem(Item item)
