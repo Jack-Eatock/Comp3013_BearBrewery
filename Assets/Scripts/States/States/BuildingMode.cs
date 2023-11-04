@@ -44,6 +44,23 @@ namespace DistilledGames.States
             return StateDefinitions.ChangeInState.NoChange;
         }
 
+        public override StateDefinitions.ChangeInState SecondaryInteractionPressed()
+        {
+            // Check if they clicked on a building.
+            RaycastHit2D hit;
+            hit = Physics2D.GetRayIntersection(Camera.main.ScreenPointToRay(PlayerInputHandler.Instance.PrimaryCursorPosition));
+            if (!hit.collider)
+                return StateDefinitions.ChangeInState.NoChange;
+
+            Debug.Log(hit.collider.transform.name);
+            Building building = hit.collider.transform.root.GetComponentInChildren<Building>();
+
+            if (building != null)
+                BuildingManager.instance.DeleteObject(building);
+
+            return StateDefinitions.ChangeInState.NoChange;
+        }
+
         public override StateDefinitions.ChangeInState MovementInput(Vector2 input)
         {
             return StateDefinitions.ChangeInState.NoChange;

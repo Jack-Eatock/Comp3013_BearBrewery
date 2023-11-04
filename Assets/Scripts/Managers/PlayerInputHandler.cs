@@ -135,7 +135,7 @@ namespace DistilledGames
         private void InputSecondaryCursorInteraction(InputAction.CallbackContext ctx)
         {
             Debug.Log("Secondary CLICK");
-            gamemanager.CheckIfStateShouldChange(gamemanager.ActiveState.PrimaryInteractionPressed());
+            gamemanager.CheckIfStateShouldChange(gamemanager.ActiveState.SecondaryInteractionPressed());
         }
 
         private void InputRotate(InputAction.CallbackContext ctx)
