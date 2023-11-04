@@ -217,5 +217,7 @@ namespace DistilledGames
     public interface IPlaceableObject
     {
         void OnPlaced();
+
+        bool Rotate();
     }
 }

@@ -14,7 +14,6 @@ namespace DistilledGames.States
 
             if (gameManager.PrevState == StateDefinitions.GameStates.BuildingModePlacing.ToString())
                 return;
-            Debug.Log("AAA");
 
             BuildingManager.instance.ShowGrid(true);
             gameManager.SetBearActive(false);
@@ -28,8 +27,6 @@ namespace DistilledGames.States
 
             if (gameManager.NextState == StateDefinitions.GameStates.BuildingModePlacing.ToString())
                 return;
-
-            Debug.Log("AAA");
 
             BuildingManager.instance.ShowGrid(false);
             gameManager.SetBearActive(true);

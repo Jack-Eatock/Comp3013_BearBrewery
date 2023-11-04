@@ -24,9 +24,6 @@ namespace DistilledGames.States
             gameManager.SetBearActive(false);
             gameManager.SetItemsActive(false);
             MenuManager.Instance.ShowMenu(MenuManager.Menus.BuildingMenu);
-
-            Debug.Log("AAA"  + gameManager.PrevState);
-
         }
 
         public override void StateExit()
@@ -36,11 +33,10 @@ namespace DistilledGames.States
             if (gameManager.NextState == StateDefinitions.GameStates.BuildingMode.ToString())
                 return;
 
-            Debug.Log("AAA");
-
             BuildingManager.instance.ShowGrid(false);
             gameManager.SetBearActive(true);
             gameManager.SetItemsActive(true);
+            MenuManager.Instance.HideMenu(MenuManager.Menus.BuildingMenu);
         }
 
         public override void StateUpdate()
@@ -119,6 +115,16 @@ namespace DistilledGames.States
             GameObject.Destroy(buildingPlacing.gameObject);
             gameManager.NextState = StateDefinitions.GameStates.BuildingMode.ToString();
             return StateDefinitions.ChangeInState.NextState;
+        }
+
+        public override StateDefinitions.ChangeInState RotateInputPressed()
+        {
+            // Try to rotate building
+            if (buildingPlacing.Rotate())
+                Debug.Log("Rotated");
+            else
+                Debug.Log("Cant rotate");
+            return StateDefinitions.ChangeInState.NoChange;
         }
     }
 }

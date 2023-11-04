@@ -48,5 +48,10 @@ namespace DistilledGames.States
         {
             return StateDefinitions.ChangeInState.NoChange;
         }
+
+        public virtual StateDefinitions.ChangeInState RotateInputPressed()
+        {
+            return StateDefinitions.ChangeInState.NoChange;
+        }
     }
 }
