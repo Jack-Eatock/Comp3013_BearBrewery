@@ -8,7 +8,9 @@ namespace DistilledGames
     public class BoilerRecipe
     {
         public Item inputItemPrefab;
+        public int inputItemCount; // Amount of input items needed
         public Item outputItemPrefab;
+        public int outputItemCount; // Amount of output items produced
     }
 
     public class Boiler : Building, IInteractable
@@ -17,20 +19,20 @@ namespace DistilledGames
         [SerializeField] private int maxCapacity;
         [SerializeField] private float processingTime; // in seconds
 
-        private Dictionary<int, Item> recipeDictionary; // Dictionary to store input to output prefab mapping
+        private Dictionary<int, BoilerRecipe> recipeDictionary;
         private int inputItemCount = 0;
         private int outputItemCount = 0;
         private bool isProcessing = false;
         private Item currentItem;
-        private Item outputItemPrefab;
+        private BoilerRecipe currentRecipe;
 
         private void Start()
         {
-            recipeDictionary = new Dictionary<int, Item>();
+            recipeDictionary = new Dictionary<int, BoilerRecipe>();
             foreach (BoilerRecipe recipe in recipes)
             {
                 if (!recipeDictionary.ContainsKey(recipe.inputItemPrefab.ItemID))
-                    recipeDictionary.Add(recipe.inputItemPrefab.ItemID, recipe.outputItemPrefab);
+                    recipeDictionary.Add(recipe.inputItemPrefab.ItemID, recipe);
                 else
                     Debug.LogWarning("Duplicate recipe detected for item ID: " + recipe.inputItemPrefab.ItemID);
             }
@@ -39,8 +41,10 @@ namespace DistilledGames
         void Update()
         {
             // If there are items and the boiler is not already processing, start the process
-            if (inputItemCount > 0 && !isProcessing)
+            if (inputItemCount >= (currentRecipe?.inputItemCount ?? 0) && !isProcessing)
+            {
                 StartCoroutine(ProcessItem());
+            }
         }
 
         private IEnumerator ProcessItem()
@@ -48,31 +52,38 @@ namespace DistilledGames
             isProcessing = true;
             yield return new WaitForSeconds(processingTime);
 
-            // Convert input items to output items one by one
-            inputItemCount--;
-            outputItemCount++;
-            Debug.Log("Processed one item. Items in boiler: " + inputItemCount + ". Items ready: " + outputItemCount);
+            if (currentRecipe != null)
+            {
+                inputItemCount -= currentRecipe.inputItemCount; // Consume input items
+                outputItemCount += currentRecipe.outputItemCount; // Produce output items
+                Debug.Log($"Processed items. Items in boiler: {inputItemCount}. Items ready: {outputItemCount}");
+            }
+            else
+            {
+                Debug.LogError("Current recipe is not set in the boiler.");
+            }
 
             isProcessing = false;
         }
 
         public bool TryToInsertItem(Item item)
         {
-            // Check if the item can be processed and if there's space
-            if (inputItemCount < maxCapacity && recipeDictionary.ContainsKey(item.ItemID) && (currentItem == null || item.ItemID == currentItem.ItemID))
+            if (recipeDictionary.TryGetValue(item.ItemID, out BoilerRecipe recipe))
             {
-                inputItemCount++;
-                currentItem = item;
-                outputItemPrefab = recipeDictionary[item.ItemID]; // Use the ItemID to get the corresponding output prefab
-                Destroy(item.gameObject); // Consuming the item
-                Debug.Log("Item added to the boiler. Total items: " + inputItemCount);
-                return true;
+                // Check for capacity and recipe requirement
+                if (inputItemCount < maxCapacity && inputItemCount < recipe.inputItemCount)
+                {
+                    inputItemCount++;
+                    currentItem = item;
+                    currentRecipe = recipe; // Set the current recipe
+                    Destroy(item.gameObject); // Consuming the item
+                    Debug.Log("Item added to the boiler. Total items: " + inputItemCount);
+                    return true;
+                }
             }
-            else
-            {
-                Debug.Log("Cannot add item to boiler. It may be full or not suitable for any recipe.");
-                return false;
-            }
+
+            Debug.Log("Cannot add item to boiler. It may be full or not suitable for any recipe.");
+            return false;
         }
 
         public bool TryToRetreiveItem(out Item item)
@@ -81,9 +92,8 @@ namespace DistilledGames
             if (outputItemCount > 0)
             {
                 outputItemCount--;
+                item = Instantiate(currentRecipe.outputItemPrefab); // Use the output prefab stored during item insertion
                 Debug.Log("Item removed from boiler. Items left: " + outputItemCount);
-                // Instantiate the output prefab using the reference stored during AddItem
-                item = Instantiate(outputItemPrefab);
                 return true;
             }
             else
