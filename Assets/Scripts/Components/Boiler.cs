@@ -15,33 +15,34 @@ namespace DistilledGames
 
     public class Boiler : Building, IInteractable
     {
-        [SerializeField] private List<BoilerRecipe> recipes; // List of input-output prefab pairs
+        [SerializeField] private List<Recipe> recipes; // List of Scriptable Object recipes
         [SerializeField] private int maxCapacity;
         [SerializeField] private float processingTime; // in seconds
 
-        private Dictionary<int, BoilerRecipe> recipeDictionary;
-        private int inputItemCount = 0;
-        private int outputItemCount = 0;
+        private Dictionary<int, Recipe> recipeDictionary;
+        private int inputItemCount = 0; // You may want to handle this differently depending on your item stack logic
+        private int outputItemCount = 0; // This also might need changing according to stack logic
         private bool isProcessing = false;
         private Item currentItem;
-        private BoilerRecipe currentRecipe;
+        private Recipe currentRecipe;
 
         private void Start()
         {
-            recipeDictionary = new Dictionary<int, BoilerRecipe>();
-            foreach (BoilerRecipe recipe in recipes)
+            recipeDictionary = new Dictionary<int, Recipe>();
+            foreach (Recipe recipeSO in recipes)
             {
-                if (!recipeDictionary.ContainsKey(recipe.inputItemPrefab.ItemID))
-                    recipeDictionary.Add(recipe.inputItemPrefab.ItemID, recipe);
+                int inputID = recipeSO.InputItems[0].itemPrefab.ItemID; // Assumes the boiler only uses the first input item for processing
+                if (!recipeDictionary.ContainsKey(inputID))
+                    recipeDictionary.Add(inputID, recipeSO);
                 else
-                    Debug.LogWarning("Duplicate recipe detected for item ID: " + recipe.inputItemPrefab.ItemID);
+                    Debug.LogWarning("Duplicate recipe detected for item ID: " + inputID);
             }
         }
 
         void Update()
         {
             // If there are items and the boiler is not already processing, start the process
-            if (inputItemCount >= (currentRecipe?.inputItemCount ?? 0) && !isProcessing)
+            if (inputItemCount >= (currentRecipe?.InputItems[0].itemCount ?? 0) && !isProcessing)
             {
                 StartCoroutine(ProcessItem());
             }
@@ -54,8 +55,8 @@ namespace DistilledGames
 
             if (currentRecipe != null)
             {
-                inputItemCount -= currentRecipe.inputItemCount; // Consume input items
-                outputItemCount += currentRecipe.outputItemCount; // Produce output items
+                inputItemCount -= currentRecipe.InputItems[0].itemCount; // Consume input items
+                outputItemCount += currentRecipe.OutputItems[0].itemCount; // Produce output items (assuming one-to-one processing for simplicity)
                 Debug.Log($"Processed items. Items in boiler: {inputItemCount}. Items ready: {outputItemCount}");
             }
             else
@@ -68,10 +69,10 @@ namespace DistilledGames
 
         public bool TryToInsertItem(Item item)
         {
-            if (recipeDictionary.TryGetValue(item.ItemID, out BoilerRecipe recipe))
+            if (recipeDictionary.TryGetValue(item.ItemID, out Recipe recipe))
             {
                 // Check for capacity and recipe requirement
-                if (inputItemCount < maxCapacity && inputItemCount < recipe.inputItemCount)
+                if (inputItemCount < maxCapacity && inputItemCount < recipe.InputItems[0].itemCount)
                 {
                     inputItemCount++;
                     currentItem = item;
@@ -92,7 +93,7 @@ namespace DistilledGames
             if (outputItemCount > 0)
             {
                 outputItemCount--;
-                item = Instantiate(currentRecipe.outputItemPrefab); // Use the output prefab stored during item insertion
+                item = Instantiate(currentRecipe.OutputItems[0].itemPrefab); // Use the output prefab stored during item insertion
                 Debug.Log("Item removed from boiler. Items left: " + outputItemCount);
                 return true;
             }

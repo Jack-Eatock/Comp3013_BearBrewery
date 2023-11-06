@@ -4,48 +4,70 @@ using UnityEngine;
 
 namespace DistilledGames
 {
-    [System.Serializable]
-    public class CombinerRecipe
-    {
-        public Item inputItemPrefab1;
-        public int inputItem1Count; // Amount of inputItemPrefab1 needed
-        public Item inputItemPrefab2;
-        public int inputItem2Count; // Amount of inputItemPrefab2 needed
-        public Item outputItemPrefab;
-        public int outputItemCount; // Amount of items produced
-    }
-
-
     public class Combiner : Building, IInteractable
     {
-        [SerializeField] private List<CombinerRecipe> recipes;
+        [SerializeField] private List<Recipe> recipes; // This will hold the references to the Recipe ScriptableObjects
         [SerializeField] private int maxCapacity;
         [SerializeField] private float processingTime;
 
-        private Dictionary<(int, int), Item> recipeDictionary;
-        private int inputItem1Count = 0;
-        private int inputItem2Count = 0;
+        private Dictionary<int, List<Recipe>> recipeDictionary; // Maps an item ID to its recipes
+        private Dictionary<int, int> inputCounts; // Tracks the counts of each input item ID
         private int outputItemCount = 0;
         private bool isProcessing = false;
-        private Item outputItemPrefab;
+        private List<Recipe.ItemCountPair> currentOutputItems;
 
         private void Start()
         {
-            recipeDictionary = new Dictionary<(int, int), Item>();
-            foreach (CombinerRecipe recipe in recipes)
+            recipeDictionary = new Dictionary<int, List<Recipe>>();
+            inputCounts = new Dictionary<int, int>();
+
+            // Iterate over each recipe to populate our dictionary
+            foreach (Recipe recipe in recipes)
             {
-                var key = (recipe.inputItemPrefab1.ItemID, recipe.inputItemPrefab2.ItemID);
-                if (!recipeDictionary.ContainsKey(key))
-                    recipeDictionary.Add(key, recipe.outputItemPrefab);
-                else
-                    Debug.LogWarning($"Duplicate recipe detected for item IDs: {recipe.inputItemPrefab1.ItemID} and {recipe.inputItemPrefab2.ItemID}");
+                foreach (var inputItem in recipe.InputItems)
+                {
+                    if (!recipeDictionary.ContainsKey(inputItem.itemPrefab.ItemID))
+                    {
+                        recipeDictionary[inputItem.itemPrefab.ItemID] = new List<Recipe>();
+                    }
+                    recipeDictionary[inputItem.itemPrefab.ItemID].Add(recipe);
+
+                    // Initialize inputCounts dictionary
+                    inputCounts[inputItem.itemPrefab.ItemID] = 0;
+                }
             }
         }
 
         void Update()
         {
-            if (inputItem1Count > 0 && inputItem2Count > 0 && !isProcessing)
+            // Process items if not currently processing and there is a recipe that can be made
+            if (!isProcessing && CanProcessAnyRecipe())
+            {
                 StartCoroutine(ProcessItems());
+            }
+        }
+
+        private bool CanProcessAnyRecipe() // Is there a recipe that can be currently processed?
+        {
+            foreach (var recipe in recipes)
+            {
+                bool canMake = true;
+                foreach (var inputItem in recipe.InputItems)
+                {
+                    if (inputCounts[inputItem.itemPrefab.ItemID] < inputItem.itemCount)
+                    {
+                        canMake = false;
+                        break;
+                    }
+                }
+
+                if (canMake)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private IEnumerator ProcessItems()
@@ -53,112 +75,64 @@ namespace DistilledGames
             isProcessing = true;
             yield return new WaitForSeconds(processingTime);
 
-            // Find a valid recipe
-            CombinerRecipe validRecipe = null;
+            // Find and process a valid recipe
             foreach (var recipe in recipes)
             {
-                if (inputItem1Count >= recipe.inputItem1Count && inputItem2Count >= recipe.inputItem2Count)
+                bool canProcess = true;
+                foreach (var input in recipe.InputItems)
                 {
-                    validRecipe = recipe;
+                    if (inputCounts[input.itemPrefab.ItemID] < input.itemCount)
+                    {
+                        canProcess = false;
+                        break;
+                    }
+                }
+
+                if (canProcess)
+                {
+                    // Consume the input items
+                    foreach (var input in recipe.InputItems)
+                    {
+                        inputCounts[input.itemPrefab.ItemID] -= input.itemCount;
+                    }
+
+                    // Store outputs for retrieval
+                    currentOutputItems = new List<Recipe.ItemCountPair>(recipe.OutputItems);
+                    outputItemCount += recipe.OutputItems.Count;
                     break;
                 }
-            }
-
-            if (validRecipe != null)
-            {
-                // Consume the input items according to the recipe
-                inputItem1Count -= validRecipe.inputItem1Count;
-                inputItem2Count -= validRecipe.inputItem2Count;
-
-                // Produce the output items
-                outputItemCount += validRecipe.outputItemCount;
-
-                // Log the processing
-                Debug.Log($"Processed items. Items in combiner: {inputItem1Count} of type 1, {inputItem2Count} of type 2. {validRecipe.outputItemCount} new '{validRecipe.outputItemPrefab.name}' added. Total items ready: {outputItemCount}");
-
-                // Store the output prefab from the recipe for retrieval
-                outputItemPrefab = validRecipe.outputItemPrefab;
-            }
-            else
-            {
-                // No valid recipe found
-                Debug.LogError("No valid recipe found with the current items in the combiner.");
             }
 
             isProcessing = false;
         }
 
-
         public bool TryToInsertItem(Item item)
         {
-            bool itemAdded = false;
-
-            foreach (var recipe in recipeDictionary)
+            if (recipeDictionary.TryGetValue(item.ItemID, out List<Recipe> possibleRecipes))
             {
-                if (item.ItemID == recipe.Key.Item1 || item.ItemID == recipe.Key.Item2)
+                if (inputCounts[item.ItemID] < maxCapacity)
                 {
-                    // Check if both inputs require the same item ID
-                    if (recipe.Key.Item1 == recipe.Key.Item2)
-                    {
-                        // If so, distribute the items evenly across both inputs
-                        if (inputItem1Count < inputItem2Count && inputItem1Count < maxCapacity)
-                        {
-                            inputItem1Count++;
-                            itemAdded = true;
-                        }
-                        else if (inputItem2Count < inputItem1Count && inputItem2Count < maxCapacity)
-                        {
-                            inputItem2Count++;
-                            itemAdded = true;
-                        }
-                        // If both are equal, add to the first slot if not at max capacity
-                        else if (inputItem1Count == inputItem2Count && inputItem1Count < maxCapacity)
-                        {
-                            inputItem1Count++;
-                            itemAdded = true;
-                        }
-                    }
-                    else
-                    {
-                        // If the inputs require different items, just increment the correct one
-                        if (item.ItemID == recipe.Key.Item1 && inputItem1Count < maxCapacity)
-                        {
-                            inputItem1Count++;
-                            itemAdded = true;
-                        }
-                        else if (item.ItemID == recipe.Key.Item2 && inputItem2Count < maxCapacity)
-                        {
-                            inputItem2Count++;
-                            itemAdded = true;
-                        }
-                    }
-
-                    if (itemAdded)
-                    {
-                        outputItemPrefab = recipe.Value;
-                        Destroy(item.gameObject); // Consuming the item
-                        Debug.Log("Item added to the combiner.");
-                        break; // Exit the loop if we've successfully added the item
-                    }
+                    inputCounts[item.ItemID]++;
+                    Destroy(item.gameObject); // Consuming the item
+                    Debug.Log("Item added to the combiner.");
+                    return true;
                 }
             }
 
-            if (!itemAdded)
-            {
-                Debug.Log("Cannot add item to combiner. It may be full or not suitable for any recipe.");
-            }
-
-            return itemAdded;
+            Debug.Log("Cannot add item to combiner. It may be full or not suitable for any recipe.");
+            return false;
         }
 
         public bool TryToRetreiveItem(out Item item)
         {
             item = null;
-            if (outputItemCount > 0)
+            if (currentOutputItems != null && currentOutputItems.Count > 0)
             {
-                outputItemCount--;
+                var outputPair = currentOutputItems[0];
+                currentOutputItems.RemoveAt(0); // Remove the item from the list
+                item = Instantiate(outputPair.itemPrefab); // Instantiate the output item
                 Debug.Log("Item retrieved from combiner. Items left: " + outputItemCount);
-                item = Instantiate(outputItemPrefab); // Use the output prefab stored during item insertion
+                outputItemCount--;
                 return true;
             }
             else
