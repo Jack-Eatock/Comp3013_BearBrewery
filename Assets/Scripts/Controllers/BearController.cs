@@ -8,6 +8,9 @@ public class BearController : MonoBehaviour
     [SerializeField] private CircleCollider2D detectionCollider;
     [SerializeField] private LayerMask interactionLayer;
     [SerializeField] private float timeBetweenInteractions = .4f;
+    [SerializeField] private Vector3 interactionZoneOffsetLeft = new Vector3(-0.8f, 0f, 0f);
+    [SerializeField] private Vector3 interactionZoneOffsetRight = new Vector3(0.8f, 0f, 0f);
+    [SerializeField] private Transform interactionZoneTransform;
 
     private Rigidbody2D rig;
     private SpriteRenderer rend;
@@ -17,6 +20,8 @@ public class BearController : MonoBehaviour
     private int heldItemOriginalSortingOrder;
     private Vector3 currentMoveDirection = Vector3.zero;
     private float timeLastInteracted = 0;
+    private float lastNonZeroInputX = -1;  // Initialize to -1 assuming default facing left
+
     public bool IsItemHeld => isItemHeld;
     public Item HeldItem => heldItem;
 
@@ -24,12 +29,17 @@ public class BearController : MonoBehaviour
     {
         rig = GetComponent<Rigidbody2D>();
         rend = GetComponent<SpriteRenderer>();
+
+        if (interactionZoneTransform == null)
+        {
+            Debug.LogError("Interaction Zone Transform is not assigned in the inspector.", this);
+        }
     }
 
     void Update()
     {
        if (PlayerInputHandler.Instance.Interact)
-            Interact();  // If the button was released before it's considered a hold
+            Interact();
     }
 
     private void FixedUpdate()
@@ -38,6 +48,8 @@ public class BearController : MonoBehaviour
         Helper.UpdateSortingOrder(rend, transform);
         if (heldItem != null)
             Helper.UpdateSortingOrder(heldItem.Rend, heldItem.transform, 1);
+
+        FlipSpriteBasedOnMoveDirection();
     }
 
     #region Movement
@@ -52,6 +64,34 @@ public class BearController : MonoBehaviour
     public void OnMove(Vector2 input)
     {
         currentMoveDirection = new Vector3(input.x, input.y, 0);
+    }
+
+    private void FlipSpriteBasedOnMoveDirection()
+    {
+        // Check if there is horizontal movement
+        if (currentMoveDirection.x != 0)
+        {
+            // If moving right and sprite facing left or moving left and sprite facing right, flip the sprite.
+            if ((currentMoveDirection.x > 0 && !rend.flipX) || (currentMoveDirection.x < 0 && rend.flipX))
+            {
+                rend.flipX = !rend.flipX; // This flips the sprite
+                // Also move the interaction zone to the correct position
+                interactionZoneTransform.localPosition = rend.flipX ? interactionZoneOffsetRight : interactionZoneOffsetLeft;
+            }
+
+            // Update the lastNonZeroInputX
+            lastNonZeroInputX = currentMoveDirection.x;
+        }
+        else if (lastNonZeroInputX != 0) // No current horizontal movement, use last known direction
+        {
+            // If last input was right and sprite facing left or last input was left and sprite facing right, flip the sprite.
+            if ((lastNonZeroInputX > 0 && !rend.flipX) || (lastNonZeroInputX < 0 && rend.flipX))
+            {
+                rend.flipX = !rend.flipX; // This flips the sprite
+                // Also move the interaction zone to the correct position
+                interactionZoneTransform.localPosition = rend.flipX ? interactionZoneOffsetRight : interactionZoneOffsetLeft;
+            }
+        }
     }
 
     #endregion
