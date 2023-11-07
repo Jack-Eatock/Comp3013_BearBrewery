@@ -39,7 +39,7 @@ namespace DistilledGames
             // Pick an output.
             for (int i = 0; i < tmpOutGoing.Length; i++)
             {
-                if (tmpOutGoing[i].CanAnItemBeInserted(itemOnBelt, gridCoords))
+                if (tmpOutGoing[i].CanAnItemBeInserted(itemOnBelt, gridCoords + CordsFromDirection(GetDirection())))
                 {
                     outGoing = tmpOutGoing[i];
                     break;
@@ -55,7 +55,7 @@ namespace DistilledGames
             if (sendingTo == null)
                 return;
 
-            if (sendingTo.ConveyerTryToInsertItem(itemOnBelt, gridCoords))
+            if (sendingTo.ConveyerTryToInsertItem(itemOnBelt, gridCoords + CordsFromDirection(GetDirection())))
                 itemOnBelt = null;
 
             sendingTo = null;
@@ -135,5 +135,11 @@ namespace DistilledGames
         }
 
         #endregion
+
+        public override void OnDeleted()
+        {
+            Destroy(itemOnBelt.gameObject);
+            itemOnBelt = null;
+        }
     }
 }

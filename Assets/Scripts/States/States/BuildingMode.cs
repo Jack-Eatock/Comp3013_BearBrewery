@@ -8,6 +8,7 @@ namespace DistilledGames.States
 
         public override void StateEnter()
         {
+            BuildingManager.instance.Running = false;
             base.StateEnter();
             timeEntered = Time.time;
             BuildingMenu.instance.SwitchPanel(BuildingMenu.BuildingMenuPanels.BuildingOptions);
@@ -23,6 +24,7 @@ namespace DistilledGames.States
 
         public override void StateExit()
         {
+            BuildingManager.instance.Running = true;
             base.StateExit();
 
             if (gameManager.NextState == StateDefinitions.GameStates.BuildingModePlacing.ToString())

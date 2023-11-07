@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
 namespace DistilledGames
 {
-    public class Combiner : Building, IInteractable
+    public class Combiner : Building, IInteractable, IConveyerInteractable
     {
         [SerializeField] private List<Recipe> recipes; // This will hold the references to the Recipe ScriptableObjects
         [SerializeField] private int maxCapacity;
@@ -15,6 +16,9 @@ namespace DistilledGames
         private int outputItemCount = 0;
         private bool isProcessing = false;
         private List<Recipe.ItemCountPair> currentOutputItems;
+
+        [SerializeField]
+        private List<Vector2Int> conveyerIn, conveyerOut;
 
         private void Start()
         {
@@ -106,6 +110,8 @@ namespace DistilledGames
             isProcessing = false;
         }
 
+        #region Player Interaction
+
         public bool TryToInsertItem(Item item)
         {
             if (recipeDictionary.TryGetValue(item.ItemID, out List<Recipe> possibleRecipes))
@@ -141,5 +147,50 @@ namespace DistilledGames
                 return false;
             }
         }
+        #endregion
+
+        #region Conveyers
+
+        public bool ConveyerTryToInsertItem(Item item, Vector2Int insertFromCoords)
+        {
+            return TryToInsertItem(item);
+        }
+
+        public bool ConveyerTryToRetrieveItem(Vector2Int RetrieveFromCoords, out Item item)
+        {
+            item = null;
+            Vector2Int gridCoordsAdjusted = Vector2Int.zero;
+            for (int i = 0; i < conveyerOut.Count; i++)
+            {
+                gridCoordsAdjusted = GridCoords + conveyerOut[i];
+                if (RetrieveFromCoords == gridCoordsAdjusted)
+                    return TryToRetreiveItem(out item);
+            }
+            return false;
+        }
+
+        public bool CanAnItemBeInserted(Item item, Vector2Int insertFromCoords)
+        {
+            if (recipeDictionary.TryGetValue(item.ItemID, out List<Recipe> possibleRecipes))
+            {
+                if (inputCounts[item.ItemID] < maxCapacity)
+                    return true;
+            }
+            return false;
+        }
+
+        public bool CanConnectIn(Vector2Int coords)
+        {
+            Vector2Int gridCoordsAdjusted = Vector2Int.zero;
+            for (int i = 0; i < conveyerIn.Count; i++)
+            {
+                gridCoordsAdjusted = GridCoords + conveyerIn[i];
+                if (coords == gridCoordsAdjusted)
+                    return true;
+            }
+            return false;
+        }
+
+        #endregion
     }
 }

@@ -105,5 +105,10 @@ namespace DistilledGames
         {
             return currentRotation;
         }
+
+        public virtual void OnDeleted()
+        {
+           
+        }
     }
 }

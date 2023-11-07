@@ -24,6 +24,7 @@ namespace DistilledGames
         private Dictionary<Vector2Int, Conveyer> conveyers = new Dictionary<Vector2Int, Conveyer>();
         private float timeOfLastTick = 0;
 
+        public bool Running = true;
 
         #region Getters
 
@@ -48,6 +49,7 @@ namespace DistilledGames
 
         private void Update()
         {
+        if (Running)
             UpdatingConveyerBelts();
         }
 
@@ -149,6 +151,7 @@ namespace DistilledGames
                     }
                      
                     placedObjects.Remove(keyPair.Key);
+                    objectToDelete.OnDeleted();
                     GameObject.Destroy(objectToDelete.gameObject);
                     return;
                 }
@@ -364,6 +367,7 @@ namespace DistilledGames
     public interface IPlaceableObject
     {
         void OnPlaced(Vector2Int _gridCoords);
+        void OnDeleted();
         bool Rotate();
     }
 }

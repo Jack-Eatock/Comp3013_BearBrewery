@@ -14,6 +14,8 @@ namespace DistilledGames.States
 
         public override void StateEnter()
         {
+            BuildingManager.instance.Running = false;
+
             base.StateEnter();
             timeEntered = Time.time;
             SpawnBuilding();
@@ -30,6 +32,7 @@ namespace DistilledGames.States
 
         public override void StateExit()
         {
+            BuildingManager.instance.Running = true;
             base.StateExit();
 
             if (gameManager.NextState == StateDefinitions.GameStates.BuildingMode.ToString())
