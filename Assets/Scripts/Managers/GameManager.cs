@@ -17,6 +17,9 @@ namespace DistilledGames
 
         private List<Item> items = new List<Item>();
 
+        // Settings
+        public float ConveyerBeltItemsPerSecond = 1;
+
         #region Getters
 
         public BearController BearController => bearController; // simplified getter
@@ -75,16 +78,16 @@ namespace DistilledGames
 
         public void SetItemsActive(bool state)
         {
-            foreach(Item item in items)
+            for (int i = 0; i < items.Count; i++)
             {
-                if (item.gameObject == null)
+                if (items[i] == null)
                 {
+                    items.RemoveAt(i);
                     Debug.Log("Missing Item");
                 }
                 else
-                    item.gameObject.SetActive(state);
+                    items[i].gameObject.SetActive(state);
             }
-               
         }
 
         public void RegisterItem(Item item)

@@ -135,6 +135,7 @@ public class BearController : MonoBehaviour
                 // Try inserting it. If it works great, otherwise keep checking.
                 if (interactable.TryToInsertItem(heldItem))
                 {
+                    heldItem.SetInteractable(false);
                     heldItem = null;
                     return true;
                 }
@@ -150,6 +151,7 @@ public class BearController : MonoBehaviour
         heldItem.transform.position = detectionCollider.transform.position + new Vector3(0, -detectionCollider.radius * 0.2f, 0);
         heldItem.transform.parent = null;
         heldItem.GetComponent<SpriteRenderer>().sortingOrder = heldItemOriginalSortingOrder;
+        heldItem.SetInteractable(true);
         heldItem = null;
         isItemHeld = false;
     }
@@ -180,6 +182,7 @@ public class BearController : MonoBehaviour
         heldItemOriginalSortingOrder = item.GetComponent<SpriteRenderer>().sortingOrder;
         item.GetComponent<SpriteRenderer>().sortingOrder = this.GetComponent<SpriteRenderer>().sortingOrder - 1;
         heldItem = item;
+        heldItem.SetInteractable(false);
         isItemHeld = true;
     }
 

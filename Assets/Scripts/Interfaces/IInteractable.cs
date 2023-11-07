@@ -8,6 +8,6 @@ namespace DistilledGames
     {
         bool TryToInsertItem(Item item);
 
-        bool TryToRetreiveItem(out Item item);
+        bool TryToRetreiveItem(out Item iten);
     }
 }
