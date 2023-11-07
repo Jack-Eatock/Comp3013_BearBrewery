@@ -345,7 +345,7 @@ namespace DistilledGames
 
         private void UpdatingConveyerBelts()
         {
-            if (Time.time - timeOfLastTick < GameManager.Instance.ConveyerBeltItemsPerSecond)
+            if (Time.time - timeOfLastTick < GameManager.Instance.ConveyerBeltsTimeToMove)
                 return;
 
             // Each conveyer belt should prepare to send.

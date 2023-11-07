@@ -8,6 +8,7 @@ namespace DistilledGames
     {
         private Item itemOnBelt = null;
         private IConveyerInteractable sendingTo = null;
+        private IEnumerator movingItem = null;
 
         [SerializeField]
         private List<IConveyerInteractable> outConnections = new List<IConveyerInteractable>();
@@ -55,6 +56,7 @@ namespace DistilledGames
             if (sendingTo == null)
                 return;
 
+            itemOnBelt.transform.position = gameObject.transform.position;
             if (sendingTo.ConveyerTryToInsertItem(itemOnBelt, gridCoords + CordsFromDirection(GetDirection())))
                 itemOnBelt = null;
 
@@ -75,7 +77,16 @@ namespace DistilledGames
                 {
                     Item item;
                     if (conveyerInteractable.ConveyerTryToRetrieveItem(gridCoords - direction, out item))
-                        TryToInsertItem(item);
+                    {
+                        if (itemOnBelt == null)
+                        {
+                            itemOnBelt = item;
+                            if (movingItem != null)
+                                StopCoroutine(movingItem);
+                            movingItem = MoveItemIntoConveyer(item);
+                            StartCoroutine(movingItem);
+                        }
+                    }
                 }
             }
         }
@@ -101,6 +112,9 @@ namespace DistilledGames
             item = null;
             if (itemOnBelt != null)
             {
+                if (movingItem != null)
+                    StopCoroutine(movingItem);
+
                 item = itemOnBelt;
                 itemOnBelt = null;
                 return true;
@@ -110,11 +124,38 @@ namespace DistilledGames
 
         #endregion
 
+        private IEnumerator MoveItemIntoConveyer(Item item)
+        {
+            Vector3 startingPos = item.transform.position;
+            float timeStarted = Time.time;
+            float timeToMove = GameManager.Instance.ConveyerBeltsTimeToMove;
+            while (Time.time - timeStarted < timeToMove)
+            {
+                float percentageComplete = (Time.time - timeStarted) / timeToMove;
+                if (item != null) 
+                    item.transform.position = Vector3.Lerp(startingPos, gameObject.transform.position, percentageComplete);
+                else
+                    yield break;
+                yield return new WaitForEndOfFrame();
+            }
+            if (item != null)
+                item.transform.position = gameObject.transform.position;
+        }
+
         #region Interaction from other conveyer
 
         public bool ConveyerTryToInsertItem(Item item, Vector2Int insertFromCoords)
         {
-            return TryToInsertItem(item);
+            if (itemOnBelt == null)
+            {
+                itemOnBelt = item;
+                if (movingItem != null)
+                    StopCoroutine(movingItem);
+                movingItem = MoveItemIntoConveyer(item);
+                StartCoroutine(movingItem);
+                return true;
+            }
+            return false;
         }
 
         public bool ConveyerTryToRetrieveItem(Vector2Int RetrieveFromCoords, out Item item)
@@ -138,7 +179,8 @@ namespace DistilledGames
 
         public override void OnDeleted()
         {
-            Destroy(itemOnBelt.gameObject);
+            if (itemOnBelt != null)
+                Destroy(itemOnBelt.gameObject);
             itemOnBelt = null;
         }
     }

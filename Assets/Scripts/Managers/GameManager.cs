@@ -20,7 +20,7 @@ namespace DistilledGames
         private double cash;
 
         // Settings
-        public float ConveyerBeltItemsPerSecond = 1;
+        public float ConveyerBeltsTimeToMove = 1;
 
         #region Getters
 

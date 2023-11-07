@@ -131,6 +131,7 @@ namespace DistilledGames
                 return false;
 
             item = Instantiate(currentRecipe.OutputItems[0].itemPrefab); // Use the output prefab stored during item insertion
+            item.transform.position = gameObject.transform.position;
             outputItemCount--;
             return true;
         }

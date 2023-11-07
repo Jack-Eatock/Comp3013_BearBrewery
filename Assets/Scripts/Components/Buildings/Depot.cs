@@ -54,6 +54,9 @@ namespace DistilledGames
         }
 
         #endregion
+
+        #region Conveyer Interactions
+
         public bool ConveyerTryToInsertItem(Item item, Vector2Int insertFromCoords)
         {
             return false;
@@ -78,5 +81,7 @@ namespace DistilledGames
         {
 
         }
+
+        #endregion
     }
 }
