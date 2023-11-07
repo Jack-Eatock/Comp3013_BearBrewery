@@ -16,6 +16,7 @@ namespace DistilledGames
         [SerializeField]
         private BuildingMenu buildingMenu;
 
+
         private void Awake()
         {
             if (Instance == null)

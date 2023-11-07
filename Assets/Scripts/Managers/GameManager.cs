@@ -15,7 +15,9 @@ namespace DistilledGames
 
         [SerializeField] private GameConfig gameConfig;
 
+        // Playthrough
         private List<Item> items = new List<Item>();
+        private double cash;
 
         // Settings
         public float ConveyerBeltItemsPerSecond = 1;
@@ -103,6 +105,15 @@ namespace DistilledGames
         {
             items.Remove(item); 
         }
+
+        #region Cash
+
+        public void EarnedCash(double _cash)
+        {
+            cash += _cash;
+            UserInterface.Instance.UpdateRevText(cash.ToString());
+        }
+        #endregion
 
         #region Handling State
 

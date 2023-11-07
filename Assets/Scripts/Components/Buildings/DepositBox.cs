@@ -9,12 +9,12 @@ namespace DistilledGames
 
         public bool TryToInsertItem(Item item)
         {
-            Debug.Log("aaa");
             if (item != null)
             {
                 int itemValue = item.Value;
                 // Here, you can add logic to use the item value, e.g., adding to a player's score.
 
+                GameManager.Instance.EarnedCash(itemValue);
                 Debug.Log("Item deposited with value: " + itemValue);
 
                 // Delete the item
