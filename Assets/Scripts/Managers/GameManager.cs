@@ -15,7 +15,12 @@ namespace DistilledGames
 
         [SerializeField] private GameConfig gameConfig;
 
+        // Playthrough
         private List<Item> items = new List<Item>();
+        private double cash;
+
+        // Settings
+        public float ConveyerBeltsTimeToMove = 1;
 
         #region Getters
 
@@ -75,16 +80,16 @@ namespace DistilledGames
 
         public void SetItemsActive(bool state)
         {
-            foreach(Item item in items)
+            for (int i = 0; i < items.Count; i++)
             {
-                if (item.gameObject == null)
+                if (items[i] == null)
                 {
+                    items.RemoveAt(i);
                     Debug.Log("Missing Item");
                 }
                 else
-                    item.gameObject.SetActive(state);
+                    items[i].gameObject.SetActive(state);
             }
-               
         }
 
         public void RegisterItem(Item item)
@@ -100,6 +105,15 @@ namespace DistilledGames
         {
             items.Remove(item); 
         }
+
+        #region Cash
+
+        public void EarnedCash(double _cash)
+        {
+            cash += _cash;
+            UserInterface.Instance.UpdateRevText(cash.ToString());
+        }
+        #endregion
 
         #region Handling State
 

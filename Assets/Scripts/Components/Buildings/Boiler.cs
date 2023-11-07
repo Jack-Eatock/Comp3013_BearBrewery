@@ -13,7 +13,7 @@ namespace DistilledGames
         public int outputItemCount; // Amount of output items produced
     }
 
-    public class Boiler : Building, IInteractable
+    public class Boiler : Building, IInteractable, IConveyerInteractable
     {
         [SerializeField] private List<Recipe> recipes; // List of Scriptable Object recipes
         [SerializeField] private int maxCapacity;
@@ -23,8 +23,10 @@ namespace DistilledGames
         private int inputItemCount = 0; // You may want to handle this differently depending on your item stack logic
         private int outputItemCount = 0; // This also might need changing according to stack logic
         private bool isProcessing = false;
-        private Item currentItem;
         private Recipe currentRecipe;
+
+        [SerializeField]
+        private Vector2Int conveyerIn, conveyerOut;
 
         private void Start()
         {
@@ -61,7 +63,8 @@ namespace DistilledGames
             }
             else
             {
-                Debug.LogError("Current recipe is not set in the boiler.");
+                // It is okay if the recipe is not set yet.
+                //Debug.LogError("Current recipe is not set in the boiler.");
             }
 
             isProcessing = false;
@@ -75,7 +78,6 @@ namespace DistilledGames
                 if (inputItemCount < maxCapacity && inputItemCount < recipe.InputItems[0].itemCount)
                 {
                     inputItemCount++;
-                    currentItem = item;
                     currentRecipe = recipe; // Set the current recipe
                     Destroy(item.gameObject); // Consuming the item
                     Debug.Log("Item added to the boiler. Total items: " + inputItemCount);
@@ -103,5 +105,59 @@ namespace DistilledGames
                 return false;
             }
         }
+
+        #region Conveyer Belt
+
+        /// <summary>
+        /// A conveyer belt is trying to input. Should it be able to??
+        /// </summary>
+        public bool ConveyerTryToInsertItem(Item item, Vector2Int insertFromCoords)
+        {
+            // Try to take in the item
+            return TryToInsertItem(item);
+        }
+
+        public bool ConveyerTryToRetrieveItem(Vector2Int RetrieveFromCoords, out Item item)
+        {
+            item = null;
+
+            // Are the requested coords lining up with the output coords.
+            Vector2Int outputCoords = gridCoords + conveyerOut;
+            if (RetrieveFromCoords != outputCoords)
+                return false;
+
+            // Do we have items to output??
+            if (outputItemCount <= 0)
+                return false;
+
+            item = Instantiate(currentRecipe.OutputItems[0].itemPrefab); // Use the output prefab stored during item insertion
+            item.transform.position = gameObject.transform.position;
+            outputItemCount--;
+            return true;
+        }
+
+        public bool CanAnItemBeInserted(Item item, Vector2Int insertFromCoords)
+        {
+            if (recipeDictionary.TryGetValue(item.ItemID, out Recipe recipe))
+            {
+                // Check for capacity and recipe requirement
+                if (inputItemCount < maxCapacity && inputItemCount < recipe.InputItems[0].itemCount)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool CanConnectIn(Vector2Int coords)
+        {
+            // Do the coords allign with the input coords.
+            Vector2Int inputCoords = gridCoords + conveyerIn;
+            if (inputCoords != coords)
+                return false;
+            return true;
+        }
+
+        #endregion
     }
 }

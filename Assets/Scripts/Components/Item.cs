@@ -10,14 +10,11 @@ namespace DistilledGames
         [Space(10)]
         [SerializeField] private string itemName;
         [Space(10)]
-        [SerializeField] private bool isInteractable;
-        [Space(10)]
         [SerializeField] private int value;
-        [SerializeField] private Collider interactionCollider;
+        private Collider2D interactionCollider;
 
         public int ItemID => ID;
         public string ItemName => itemName;
-        public bool IsInteractable => isInteractable;
         public int Value => value;
         public SpriteRenderer Rend => rend;
 
@@ -27,6 +24,7 @@ namespace DistilledGames
         {
             GameManager.Instance.RegisterItem(this);
             rend = GetComponent<SpriteRenderer>();
+            interactionCollider = transform.GetChild(0).GetComponent<Collider2D>();
         }
 
         public bool TryToInsertItem(Item item)
@@ -38,6 +36,11 @@ namespace DistilledGames
         {
             item = this;
             return true;
+        }
+
+        public void SetInteractable(bool isInteractable)
+        {
+            interactionCollider.enabled = isInteractable;
         }
     }
 }

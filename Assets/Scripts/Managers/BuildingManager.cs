@@ -9,7 +9,6 @@ namespace DistilledGames
     public class BuildingManager : MonoBehaviour
     {
         public static BuildingManager instance;
-
         public BuildingData selectedBuilding;
 
         [SerializeField]
@@ -17,8 +16,15 @@ namespace DistilledGames
         [SerializeField]
         private TileBase gridTile;
         private Dictionary<Vector2Int, Building> placedObjects = new Dictionary<Vector2Int, Building>();
+
         private IEnumerator showingGrid;
         private float gridTime = .3f;
+
+        // Conveyer Belts
+        private Dictionary<Vector2Int, Conveyer> conveyers = new Dictionary<Vector2Int, Conveyer>();
+        private float timeOfLastTick = 0;
+
+        public bool Running = true;
 
         #region Getters
 
@@ -39,6 +45,12 @@ namespace DistilledGames
         private void Start()
         {
             GenerateGrid();
+        }
+
+        private void Update()
+        {
+        if (Running)
+            UpdatingConveyerBelts();
         }
 
         /// <summary>
@@ -112,6 +124,15 @@ namespace DistilledGames
 
             Helper.UpdateSortingOrder(objToPlace.Rend, objToPlace.transform);
             placedObjects.Add(coords, objToPlace);
+
+            Conveyer conveyer;
+            if (objToPlace.TryGetComponent(out conveyer))
+            {
+                conveyers.Add(coords, conveyer);
+            }
+
+            objToPlace.OnPlaced(coords);
+            CalculateConveyerConnections();
             return true;
         }
 
@@ -122,11 +143,33 @@ namespace DistilledGames
             {
                 if (keyPair.Value == objectToDelete)
                 {
+                    Conveyer conveyer;
+                    if (objectToDelete.TryGetComponent(out conveyer))
+                    {
+                        conveyers.Remove(keyPair.Key);
+                        CalculateConveyerConnections();
+                    }
+                     
                     placedObjects.Remove(keyPair.Key);
+                    objectToDelete.OnDeleted();
                     GameObject.Destroy(objectToDelete.gameObject);
                     return;
                 }
             }
+        }
+
+        public bool GetObjectsCoords(Building building, out Vector2Int coords)
+        {
+            coords = Vector2Int.zero;
+            foreach (KeyValuePair<Vector2Int, Building> keyValuePair in placedObjects)
+            {
+                if (keyValuePair.Value == building)
+                {
+                    coords = keyValuePair.Key;
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -156,7 +199,7 @@ namespace DistilledGames
         /// <param name="coords"></param>
         /// <param name="placement"></param>
         /// <returns></returns>
-        private bool GetObjectAtCoords(Vector2Int coords, out Building placement)
+        public bool GetObjectAtCoords(Vector2Int coords, out Building placement)
         {
             // Object at exact coord
             if (placedObjects.TryGetValue(coords, out placement))
@@ -226,12 +269,105 @@ namespace DistilledGames
                 tmpColor.a = 0;
             tileMapGrid.color = tmpColor;
         }
+
+        private void CalculateConveyerConnections()
+        {
+            List<Vector2Int> coordsToCheck = new List<Vector2Int>();
+            List<IConveyerInteractable> outGoingConnections = new List<IConveyerInteractable>();
+            foreach(KeyValuePair<Vector2Int, Conveyer> keyValuePair in conveyers)
+            {
+                outGoingConnections.Clear();
+                coordsToCheck.Clear();
+
+                // Look at the conveyers coord.
+                Vector2Int conveyerCord = keyValuePair.Key;
+                Conveyer conveyer = keyValuePair.Value;
+
+                // Is there a conveyer in the direction it is facing?
+                Vector2Int coordInFront = conveyerCord + conveyer.CordsFromDirection(conveyer.GetDirection());
+                if (conveyers.ContainsKey(coordInFront))
+                {
+                    // there is a cord in front. Check that it is not facing towards us.
+                    Vector2Int theirFrontCord = coordInFront + conveyers[coordInFront].CordsFromDirection(conveyers[coordInFront].GetDirection());
+                    if (theirFrontCord != conveyer.GridCoords)
+                        outGoingConnections.Add(conveyers[coordInFront]);
+                }
+                else
+                {
+                    // Check for a building.
+                    Building building = null;
+                    if (GetObjectAtCoords(coordInFront, out building))
+                    {
+                        IConveyerInteractable conveyerInteractable = null;
+                        if (building.TryGetComponent(out conveyerInteractable))
+                        {
+                            if (conveyerInteractable.CanConnectIn(coordInFront))
+                                outGoingConnections.Add(conveyerInteractable);
+                        }
+                    }
+                }
+
+                // Conveyer to the left of facing
+                Direction leftOfFacing = IterateDirection(conveyer.GetDirection(), - 1);
+                Vector2Int coordToLeft = conveyerCord + conveyer.CordsFromDirection(leftOfFacing);
+                if (conveyers.ContainsKey(coordToLeft))
+                {
+                    // We only care if it is also facing our version of "Left" (away from us)
+                    if (conveyers[coordToLeft].GetDirection() == leftOfFacing)
+                        outGoingConnections.Add(conveyers[coordToLeft]);
+                }
+
+                // Conveyer to the right of facing
+                Direction rightOfFacing = IterateDirection(conveyer.GetDirection(), 1);
+                Vector2Int coordToRight = conveyerCord + conveyer.CordsFromDirection(rightOfFacing);
+                if (conveyers.ContainsKey(coordToRight))
+                {
+                    // We only care if it is also facing our version of "Right" (away from us)
+                    if (conveyers[coordToRight].GetDirection() == rightOfFacing)
+                        outGoingConnections.Add(conveyers[coordToRight]);
+                }
+
+                conveyer.SetOutConnections(outGoingConnections);
+            }
+        }
+
+        private Direction IterateDirection(Direction dir, int change)
+        {
+            if (((int)dir + change) > 3)
+                return (Direction)0;
+
+            else if (((int) dir + change) < 0)
+                return (Direction) 3;
+
+            else
+                return dir + change;
+        }
+
+        private void UpdatingConveyerBelts()
+        {
+            if (Time.time - timeOfLastTick < GameManager.Instance.ConveyerBeltsTimeToMove)
+                return;
+
+            // Each conveyer belt should prepare to send.
+            foreach (KeyValuePair<Vector2Int, Conveyer> keyValuePair in conveyers)
+                keyValuePair.Value.PrepareToSend();
+
+            // Each conveyer belt should send out anything they are holding onto.
+            foreach (KeyValuePair<Vector2Int, Conveyer> keyValuePair in conveyers)
+                keyValuePair.Value.Send();
+
+            // Each conveyer belt should pull out from a building if they can.
+            foreach (KeyValuePair<Vector2Int, Conveyer> keyValuePair in conveyers)
+                keyValuePair.Value.PullFromBuildings();
+
+            timeOfLastTick = Time.time;
+        }
     }
 
     public interface IPlaceableObject
     {
-        void OnPlaced();
-
+        void OnPlaced(Vector2Int _gridCoords);
+        void OnDeleted();
         bool Rotate();
     }
 }

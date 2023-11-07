@@ -10,10 +10,12 @@ namespace DistilledGames.States
         private Vector3Int currentSelectedCoords;
         private float timeEntered;
         private bool rotated = false;
-        private int rotationIndex = 0;
+        private Direction direction = Direction.Up;
 
         public override void StateEnter()
         {
+            BuildingManager.instance.Running = false;
+
             base.StateEnter();
             timeEntered = Time.time;
             SpawnBuilding();
@@ -30,6 +32,7 @@ namespace DistilledGames.States
 
         public override void StateExit()
         {
+            BuildingManager.instance.Running = true;
             base.StateExit();
 
             if (gameManager.NextState == StateDefinitions.GameStates.BuildingMode.ToString())
@@ -96,7 +99,7 @@ namespace DistilledGames.States
             buildingPlacing.data = BuildingManager.instance.selectedBuilding;
 
             if (rotated)
-                buildingPlacing.SetRotation(rotationIndex);
+                buildingPlacing.SetRotation(direction);
         }
 
         public override StateDefinitions.ChangeInState MovementInput(Vector2 input)
@@ -128,7 +131,7 @@ namespace DistilledGames.States
             if (buildingPlacing.Rotate())
             {
                 rotated = true;
-                rotationIndex = buildingPlacing.GetRotationIndex();
+                direction = buildingPlacing.GetDirection();
                 Debug.Log("Rotated");
             }
             else

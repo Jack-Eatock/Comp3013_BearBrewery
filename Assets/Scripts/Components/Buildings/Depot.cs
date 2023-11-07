@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace DistilledGames
 {
-    public class Depot : Building, IInteractable
+    public class Depot : Building, IInteractable, IConveyerInteractable
     {
         [SerializeField] private Item itemTypePrefab; // Prefab of the item type you want to generate
         [SerializeField] private float dispenseRate; // items per minute
@@ -32,6 +32,8 @@ namespace DistilledGames
             }
         }
 
+        #region Player Interacting
+
         public bool TryToInsertItem(Item item)
         {
             return false;
@@ -45,9 +47,41 @@ namespace DistilledGames
                 itemsHeld--;
                 Debug.Log("Depot has: " + itemsHeld + " items remaining");
                 item = Instantiate(itemTypePrefab, transform.position, Quaternion.identity); // creates the item at the Depot's position
+                item.SetInteractable(false);
                 return true;
             }
             return false;
         }
+
+        #endregion
+
+        #region Conveyer Interactions
+
+        public bool ConveyerTryToInsertItem(Item item, Vector2Int insertFromCoords)
+        {
+            return false;
+        }
+
+        public bool ConveyerTryToRetrieveItem(Vector2Int RetrieveFromCoords, out Item item)
+        {
+            return TryToRetreiveItem(out item);
+        }
+
+        public bool CanAnItemBeInserted(Item item, Vector2Int insertFromCoords)
+        {
+            return false;
+        }
+
+        public bool CanConnectIn(Vector2Int coords)
+        {
+            return false;
+        }
+
+        public override void OnDeleted()
+        {
+
+        }
+
+        #endregion
     }
 }
