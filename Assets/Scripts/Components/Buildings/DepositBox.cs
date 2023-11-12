@@ -1,10 +1,13 @@
-using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace DistilledGames
 {
     public class DepositBox : Building, IInteractable,  IConveyerInteractable
     {
+        [SerializeField]
+        private List<Vector2Int> conveyerIn = new List<Vector2Int>();
+
         #region Player Interacting
 
         public bool TryToInsertItem(Item item)
@@ -39,8 +42,14 @@ namespace DistilledGames
 
         public bool CanConnectIn(Vector2Int coords)
         {
-            Debug.Log(coords == GridCoords);
-            return coords == GridCoords;
+            Vector2Int gridCoordsAdjusted = Vector2Int.zero;
+            for (int i = 0; i < conveyerIn.Count; i++)
+            {
+                gridCoordsAdjusted = GridCoords + conveyerIn[i];
+                if (coords == gridCoordsAdjusted)
+                    return true;
+            }
+            return false;
         }
 
         public bool ConveyerTryToInsertItem(Item item, Vector2Int insertFromCoords)

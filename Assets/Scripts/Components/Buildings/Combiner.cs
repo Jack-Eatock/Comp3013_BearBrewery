@@ -138,6 +138,7 @@ namespace DistilledGames
                 currentOutputItems.RemoveAt(0); // Remove the item from the list
                 item = Instantiate(outputPair.itemPrefab); // Instantiate the output item
                 item.transform.position = transform.position;
+                item.SetInteractable(false);
                 Debug.Log("Item retrieved from combiner. Items left: " + outputItemCount);
                 outputItemCount--;
                 return true;

@@ -96,6 +96,7 @@ namespace DistilledGames
             {
                 outputItemCount--;
                 item = Instantiate(currentRecipe.OutputItems[0].itemPrefab); // Use the output prefab stored during item insertion
+                item.SetInteractable(false);
                 Debug.Log("Item removed from boiler. Items left: " + outputItemCount);
                 return true;
             }
@@ -131,6 +132,7 @@ namespace DistilledGames
                 return false;
 
             item = Instantiate(currentRecipe.OutputItems[0].itemPrefab); // Use the output prefab stored during item insertion
+            item.SetInteractable(false);
             item.transform.position = gameObject.transform.position;
             outputItemCount--;
             return true;

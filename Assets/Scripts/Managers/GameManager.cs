@@ -78,17 +78,32 @@ namespace DistilledGames
             bearController.gameObject.SetActive(state);
         }
 
-        public void SetItemsActive(bool state)
+        private void ClearItems()
         {
             for (int i = 0; i < items.Count; i++)
             {
-                if (items[i] == null)
+                if (items[i] == null || items[i].gameObject == null)
                 {
                     items.RemoveAt(i);
-                    Debug.Log("Missing Item");
+                    i = 0;
                 }
-                else
-                    items[i].gameObject.SetActive(state);
+            }
+        }
+
+        public void SetItemsActive(bool state)
+        {
+            ClearItems();
+            for (int i = 0; i < items.Count; i++)
+            {
+                try
+                {
+                    items[i]?.gameObject.SetActive(state);
+                }
+                catch (Exception)
+                {
+                    Debug.Log("ERROR");
+                    throw;
+                }
             }
         }
 
