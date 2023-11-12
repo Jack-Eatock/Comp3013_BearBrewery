@@ -53,7 +53,7 @@ namespace DistilledGames
 
         public void Send()
         {
-            if (sendingTo == null)
+            if (sendingTo == null || itemOnBelt == null)
                 return;
 
             itemOnBelt.transform.position = gameObject.transform.position;
