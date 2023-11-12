@@ -102,7 +102,6 @@ namespace DistilledGames
                 catch (Exception)
                 {
                     Debug.Log("ERROR");
-                    throw;
                 }
             }
         }

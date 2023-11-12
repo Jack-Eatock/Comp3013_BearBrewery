@@ -19,6 +19,8 @@ namespace DistilledGames
         [SerializeField] private GameObject content, placingBuildingPanel, buildingOptionsPanel;
         [SerializeField] private BuildingOption optionTemplate;
         [SerializeField] private Transform optionHolder;
+        [SerializeField] private CanvasGroup oldMessage;
+        [SerializeField] private Transform newMessage;
         private IEnumerator showingHidingMenu;
 
 
@@ -69,6 +71,7 @@ namespace DistilledGames
             ShowPanel(activePanel, true);
             showingHidingMenu = ShowingOrHiding(true, blendTime);
             StartCoroutine(showingHidingMenu);
+
         }
 
         public void HideMenu()
@@ -108,8 +111,14 @@ namespace DistilledGames
 
             if (show)
             {
+                oldMessage.alpha = 0;
                 group.alpha = 0;
                 content.SetActive(true);
+                newMessage.gameObject.SetActive(true);
+            }
+            else
+            {
+                newMessage.gameObject.SetActive(false);
             }
 
             while (Time.time - timeStarted <= time)
@@ -118,15 +127,21 @@ namespace DistilledGames
                 if (show)
                     group.alpha = Mathf.Lerp(0, 1, fractionCompleted);
                 else
-                    group.alpha = Mathf.Lerp(1, 0, fractionCompleted);
+                {
+                    group.alpha = Mathf.Lerp(0, 1, fractionCompleted);
+                    oldMessage.alpha = Mathf.Lerp(0, 1, fractionCompleted);
+                }
+                  
                 yield return new WaitForEndOfFrame();
             }
 
             if (show)
                 group.alpha = 1;
-            else
+            else 
+            {
+                oldMessage.alpha = 1;
                 group.alpha = 0;
-
+            }
 
             if (!show)
                 content.SetActive(false);
