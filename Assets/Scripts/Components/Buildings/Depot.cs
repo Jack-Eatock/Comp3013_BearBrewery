@@ -6,21 +6,21 @@ namespace DistilledGames
 {
     public class Depot : Building, IInteractable, IConveyerInteractable
     {
-        [SerializeField] private Item itemTypePrefab; // Prefab of the item type you want to generate
-        [SerializeField] private Transform displayRegion; // Center transform of the display region
-        [SerializeField] private Vector2 displaySize; // Size of the display region
+        [SerializeField] private Item itemTypePrefab; // Prefab of the item type you want to display
+        [SerializeField] private Transform displayArea; // The transform that defines the display area
+        [SerializeField] private BoxCollider2D displayAreaCollider; // Collider that defines the boundaries of the display area
         [SerializeField] private float dispenseRate; // items per minute
         [SerializeField] private float itemsHeld;
         [SerializeField] private float maxHoldingAmount;
 
-        private List<GameObject> displayedItems = new List<GameObject>(); // Track displayed items
+        private List<Item> displayedItems = new List<Item>(); // Track displayed items
         private float timeSinceLastDispense = 0f;
         private float timeForNextDispense;
 
         void Start()
         {
             timeForNextDispense = 60f / dispenseRate; // converting the rate from per minute to per second
-            UpdateItemDisplay(); // Call this to update the display at start
+            UpdateDisplay(); // Initial update of the display
         }
 
         void Update()
@@ -32,40 +32,54 @@ namespace DistilledGames
                 {
                     itemsHeld++;
                     timeSinceLastDispense = 0f;
-                    UpdateItemDisplay();
+                    UpdateDisplay();
                 }
             }
         }
 
-        private void UpdateItemDisplay()
+        private void UpdateDisplay()
         {
-            // Destroy old representations
-            foreach (var item in displayedItems)
-            {
-                Destroy(item);
-            }
-            displayedItems.Clear();
+            // Get the sorting order of the depot's SpriteRenderer
+            int depotSortingOrder = GetComponent<SpriteRenderer>().sortingOrder;
 
-            // Instantiate new representations
-            for (int i = 0; i < itemsHeld; i++)
-            {
-                Vector3 position = CalculateItemPosition(i);
-                GameObject displayedItem = Instantiate(itemTypePrefab.gameObject, position, Quaternion.identity);
-                displayedItem.SetInteractable(false); // Assuming SetInteractable is a method that disables interaction
-                displayedItems.Add(displayedItem);
-            }
-        }
+            // Calculate the bounds of the display area
+            Bounds displayBounds = displayAreaCollider.bounds;
+            Vector2 spriteSize = itemTypePrefab.GetComponent<SpriteRenderer>().sprite.bounds.size;
 
-        private Vector3 CalculateItemPosition(int index)
-        {
-            // Logic to calculate where the item should be displayed within the region
-            // This is a simple linear layout; you may want more complex positioning
-            float xSpacing = displaySize.x / maxHoldingAmount; // Distance between each item
-            return new Vector3(
-                displayRegion.position.x + (index * xSpacing) - (displaySize.x * 0.5f) + (xSpacing * 0.5f),
-                displayRegion.position.y,
-                displayRegion.position.z
-            );
+            // Adjust the display bounds to account for the sprite size
+            displayBounds.min += new Vector3(spriteSize.x * itemTypePrefab.transform.localScale.x / 2, spriteSize.y * itemTypePrefab.transform.localScale.y / 2, 0f);
+            displayBounds.max -= new Vector3(spriteSize.x * itemTypePrefab.transform.localScale.x / 2, spriteSize.y * itemTypePrefab.transform.localScale.y / 2, 0f);
+
+            // Add new items if necessary
+            while (displayedItems.Count < Mathf.FloorToInt(itemsHeld))
+            {
+                // Generate a random position within the adjusted bounds
+                float randomX = Random.Range(displayBounds.min.x, displayBounds.max.x);
+                float randomY = Random.Range(displayBounds.min.y, displayBounds.max.y);
+                Vector3 randomPosition = new Vector3(randomX, randomY, displayArea.position.z);
+
+                // Instantiate the item at the random position within the bounds
+                Item newItem = Instantiate(itemTypePrefab, randomPosition, Quaternion.identity, displayArea);
+                newItem.SetInteractable(false);
+
+                // Adjust the sorting order of the sprite renderer to be one higher than the depot's sorting order
+                SpriteRenderer newItemRenderer = newItem.GetComponent<SpriteRenderer>();
+                if (newItemRenderer != null)
+                {
+                    newItemRenderer.sortingOrder = depotSortingOrder + 1;
+                }
+
+                displayedItems.Add(newItem);
+            }
+
+            // Remove items if necessary
+            while (displayedItems.Count > Mathf.FloorToInt(itemsHeld))
+            {
+                // Remove the last item in the list
+                int lastIndex = displayedItems.Count - 1;
+                Destroy(displayedItems[lastIndex].gameObject);
+                displayedItems.RemoveAt(lastIndex);
+            }
         }
 
         #region Player Interacting
