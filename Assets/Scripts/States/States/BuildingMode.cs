@@ -16,6 +16,7 @@ namespace DistilledGames.States
             if (gameManager.PrevState == StateDefinitions.GameStates.BuildingModePlacing.ToString())
                 return;
 
+            GameManager.Instance.SwitchToCamController(true);
             BuildingManager.instance.ShowGrid(true);
             gameManager.SetBearActive(false);
             gameManager.SetItemsActive(false);
@@ -30,6 +31,7 @@ namespace DistilledGames.States
             if (gameManager.NextState == StateDefinitions.GameStates.BuildingModePlacing.ToString())
                 return;
 
+            GameManager.Instance.SwitchToCamController(false);
             BuildingManager.instance.ShowGrid(false);
             gameManager.SetBearActive(true);
             gameManager.SetItemsActive(true);
@@ -65,6 +67,7 @@ namespace DistilledGames.States
 
         public override StateDefinitions.ChangeInState MovementInput(Vector2 input)
         {
+            GameManager.Instance.CamController.OnMove(input);
             return StateDefinitions.ChangeInState.NoChange;
         }
 
