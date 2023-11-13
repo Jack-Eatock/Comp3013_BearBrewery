@@ -11,6 +11,8 @@ public class BearController : MonoBehaviour
     [SerializeField] private Vector3 interactionZoneOffsetLeft = new Vector3(-0.8f, 0f, 0f);
     [SerializeField] private Vector3 interactionZoneOffsetRight = new Vector3(0.8f, 0f, 0f);
     [SerializeField] private Transform interactionZoneTransform;
+    [SerializeField] private Animator bearAnimator;  // Reference to the Animator component.
+    [SerializeField] private float walkAnimSpeed = 1.0f;  // Base speed for walking animation.
 
     private Rigidbody2D rig;
     private SpriteRenderer rend;
@@ -59,6 +61,20 @@ public class BearController : MonoBehaviour
         // Move using physics to allow collisions etc.
         float currentSpeed = PlayerInputHandler.Instance.Sprint ? moveSpeed * sprintMultiplier : moveSpeed; // Adjust the speed based on sprinting state
         rig.MovePosition(transform.position + (currentSpeed * Time.deltaTime * currentMoveDirection));
+
+        // Adjust animation speed based on sprinting and move direction.
+        float animationSpeed = currentMoveDirection.magnitude * walkAnimSpeed * (PlayerInputHandler.Instance.Sprint ? sprintMultiplier : 1.0f);
+        bearAnimator.SetFloat("speed", animationSpeed);
+
+        // Play the walking animation if the bear is moving.
+        if (currentMoveDirection != Vector3.zero)
+        {
+            bearAnimator.SetBool("isWalking", true);
+        }
+        else
+        {
+            bearAnimator.SetBool("isWalking", false);
+        }
     }
 
     public void OnMove(Vector2 input)

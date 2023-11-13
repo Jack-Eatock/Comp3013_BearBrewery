@@ -4,26 +4,22 @@ using UnityEngine;
 
 namespace DistilledGames
 {
-    [System.Serializable]
-    public class BoilerRecipe
-    {
-        public Item inputItemPrefab;
-        public int inputItemCount; // Amount of input items needed
-        public Item outputItemPrefab;
-        public int outputItemCount; // Amount of output items produced
-    }
-
     public class Boiler : Building, IInteractable, IConveyerInteractable
     {
         [SerializeField] private List<Recipe> recipes; // List of Scriptable Object recipes
         [SerializeField] private int maxCapacity;
         [SerializeField] private float processingTime; // in seconds
+        [SerializeField] private SpriteRenderer boilerSpriteRenderer; // Make sure to assign this in the Inspector.
+
+        [SerializeField] private Sprite idleSprite; // Sprite when the boiler is not in use
+        [SerializeField] private Sprite activeSprite; // Sprite when the boiler is in use
 
         private Dictionary<int, Recipe> recipeDictionary;
         private int inputItemCount = 0; // You may want to handle this differently depending on your item stack logic
         private int outputItemCount = 0; // This also might need changing according to stack logic
         private bool isProcessing = false;
         private Recipe currentRecipe;
+        private Renderer boilerRenderer; // Renderer to change the texture
 
         [SerializeField]
         private Vector2Int conveyerIn, conveyerOut;
@@ -39,6 +35,11 @@ namespace DistilledGames
                 else
                     Debug.LogWarning("Duplicate recipe detected for item ID: " + inputID);
             }
+
+            if (boilerSpriteRenderer == null)
+                boilerSpriteRenderer = GetComponent<SpriteRenderer>();
+
+            UpdateSprite(); // Set the initial sprite
         }
 
         void Update()
@@ -48,6 +49,17 @@ namespace DistilledGames
             {
                 StartCoroutine(ProcessItem());
             }
+
+            UpdateSprite(); // Update the texture based on the boiler's state
+        }
+
+        private void UpdateSprite()
+        {
+            // Check if there are items in the input or output 
+            bool isActive = inputItemCount > 0 || outputItemCount > 0;
+
+            // Update the sprite
+            boilerSpriteRenderer.sprite = isActive ? activeSprite : idleSprite;
         }
 
         private IEnumerator ProcessItem()
