@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using DistilledGames.States;
 using System.Collections.Generic;
+using Cinemachine;
 
 namespace DistilledGames
 {
@@ -12,6 +13,9 @@ namespace DistilledGames
         protected StateDefinitions.IStateManager _activeState, _prevState, _nextState;
 
         private BearController bearController;
+        private CamController camController;
+        [SerializeField]
+        private CinemachineVirtualCamera brainController;
 
         [SerializeField] private GameConfig gameConfig;
 
@@ -25,7 +29,7 @@ namespace DistilledGames
         #region Getters
 
         public BearController BearController => bearController; // simplified getter
-
+        public CamController CamController => camController;
         public GameConfig GameConfig => gameConfig;
 
         public string PrevState
@@ -64,6 +68,7 @@ namespace DistilledGames
             }
             DontDestroyOnLoad(this.gameObject);
             bearController = GameObject.FindGameObjectWithTag("Bear").GetComponent<BearController>();
+            camController = GameObject.FindGameObjectWithTag("Cam").GetComponent<CamController>();
             nextState = StateDefinitions.GameStates.Normal.ToString();
             CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
         }
@@ -88,6 +93,17 @@ namespace DistilledGames
                     i = 0;
                 }
             }
+        }
+
+        public void SwitchToCamController(bool state)
+        {
+            if (state)
+            {
+                camController.transform.position = bearController.transform.position;
+                brainController.Follow = camController.transform;
+            }
+            else
+                brainController.Follow = bearController.transform;
         }
 
         public void SetItemsActive(bool state)
