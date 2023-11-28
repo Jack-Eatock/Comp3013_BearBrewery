@@ -7,7 +7,7 @@ namespace DistilledGames
 {
     public class StateDefinitions : MonoBehaviour
     {
-        public enum GameStates { Normal, BuildingMode, InMenu, BuildingModePlacing }
+        public enum GameStates { Normal, BuildingMode, InMenu, BuildingModePlacing, EndOfDay }
         public enum ChangeInState { NoChange, NextState, PreviousState }
 
         public interface IStateManager
