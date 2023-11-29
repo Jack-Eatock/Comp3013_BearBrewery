@@ -155,9 +155,9 @@ namespace DistilledGames
             float x = ctx.ReadValue<float>();
             int dir = 0;
             if (x > 0)
-                dir = 1;
-            else
                 dir = -1;
+            else
+                dir = 1;
 
             if (Time.time - timeOfLastScroll > timeBetweenScroll)
             {

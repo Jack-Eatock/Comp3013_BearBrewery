@@ -20,11 +20,12 @@ namespace DistilledGames.States
             base.StateEnter();
             timeEntered = Time.time;
             SpawnBuilding();
-            BuildingMenu.instance.SwitchPanel(BuildingMenu.BuildingMenuPanels.PlacingBuilding);
+            //BuildingMenu.instance.SwitchPanel(BuildingMenu.BuildingMenuPanels.PlacingBuilding);
 
             if (gameManager.PrevState == StateDefinitions.GameStates.BuildingMode.ToString())
                 return;
 
+           // Camera.main.fieldOfView
             GameManager.Instance.SwitchToCamController(true);
             BuildingManager.instance.ShowGrid(true);
             gameManager.SetBearActive(false);

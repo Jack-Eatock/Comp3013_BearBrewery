@@ -100,10 +100,12 @@ namespace DistilledGames
             if (state)
             {
                 camController.transform.position = bearController.transform.position;
-                brainController.Follow = camController.transform;
             }
             else
-                brainController.Follow = bearController.transform;
+            {
+            }
+
+            CameraManager.instance.SetBuildMode(state);
         }
 
         public void SetItemsActive(bool state)
