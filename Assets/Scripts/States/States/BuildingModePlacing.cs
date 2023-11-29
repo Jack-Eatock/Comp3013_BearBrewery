@@ -16,7 +16,6 @@ namespace DistilledGames.States
         {
             BuildingManager.instance.Running = false;
 
-
             base.StateEnter();
             timeEntered = Time.time;
             SpawnBuilding();
@@ -28,6 +27,7 @@ namespace DistilledGames.States
            // Camera.main.fieldOfView
             GameManager.Instance.SwitchToCamController(true);
             BuildingManager.instance.ShowGrid(true);
+            BuildingManager.instance.ShowArrows(true);
             gameManager.SetBearActive(false);
             gameManager.SetItemsActive(false);
             MenuManager.Instance.ShowMenu(MenuManager.Menus.BuildingMenu);
@@ -44,6 +44,7 @@ namespace DistilledGames.States
 
             GameManager.Instance.SwitchToCamController(false);
             BuildingManager.instance.ShowGrid(false);
+            BuildingManager.instance.ShowArrows(false);
             gameManager.SetBearActive(true);
             gameManager.SetItemsActive(true);
             MenuManager.Instance.HideMenu(MenuManager.Menus.BuildingMenu);
@@ -84,7 +85,6 @@ namespace DistilledGames.States
                     SpawnBuilding();
                     return StateDefinitions.ChangeInState.NoChange;
                 }
-      
 
                 gameManager.NextState = StateDefinitions.GameStates.BuildingMode.ToString();
                 return StateDefinitions.ChangeInState.NextState;
@@ -102,6 +102,7 @@ namespace DistilledGames.States
         {
             buildingPlacing = GameObject.Instantiate(BuildingManager.instance.selectedBuilding.BuidlingPrefab);
             buildingPlacing.data = BuildingManager.instance.selectedBuilding;
+            buildingPlacing.ShowArrows(true);
 
             if (rotated)
                 buildingPlacing.SetRotation(direction);

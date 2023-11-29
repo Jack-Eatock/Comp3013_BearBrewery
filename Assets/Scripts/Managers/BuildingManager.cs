@@ -233,6 +233,12 @@ namespace DistilledGames
             StartCoroutine(showingGrid);
         }
 
+        public void ShowArrows(bool show)
+        {
+            foreach(KeyValuePair< Vector2Int, Building> obj in placedObjects)
+                obj.Value.ShowArrows(show);
+        }
+
         private IEnumerator ShowingGrid(bool show)
         {
             float timeStarted = Time.time;
@@ -369,5 +375,6 @@ namespace DistilledGames
         void OnPlaced(Vector2Int _gridCoords);
         void OnDeleted();
         bool Rotate(int dir);
+        void ShowArrows(bool state);
     }
 }

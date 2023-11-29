@@ -19,6 +19,9 @@ namespace DistilledGames
         private Direction currentRotation = Direction.Up;
         [SerializeField] private Sprite rotationUp, rotationRight, rotationDown, rotationLeft;
 
+        [SerializeField]
+        private Transform arrowsHolder;
+
         public SpriteRenderer Rend => renderer;
         public Vector2Int GridCoords => gridCoords; 
 
@@ -112,6 +115,12 @@ namespace DistilledGames
         public virtual void OnDeleted()
         {
            
+        }
+
+        public void ShowArrows(bool state)
+        {
+            if(arrowsHolder != null)
+                arrowsHolder?.gameObject.SetActive(state);
         }
     }
 }

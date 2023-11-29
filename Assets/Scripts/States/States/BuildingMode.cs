@@ -18,6 +18,7 @@ namespace DistilledGames.States
 
             GameManager.Instance.SwitchToCamController(true);
             BuildingManager.instance.ShowGrid(true);
+            BuildingManager.instance.ShowArrows(true);
             gameManager.SetBearActive(false);
             gameManager.SetItemsActive(false);
             MenuManager.Instance.ShowMenu(MenuManager.Menus.BuildingMenu);
@@ -32,7 +33,8 @@ namespace DistilledGames.States
                 return;
 
             GameManager.Instance.SwitchToCamController(false);
-            BuildingManager.instance.ShowGrid(false);
+            BuildingManager.instance.ShowGrid(false); 
+            BuildingManager.instance.ShowArrows(false);
             gameManager.SetBearActive(true);
             gameManager.SetItemsActive(true);
             MenuManager.Instance.HideMenu(MenuManager.Menus.BuildingMenu);
