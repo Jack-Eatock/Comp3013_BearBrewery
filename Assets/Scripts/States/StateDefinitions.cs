@@ -22,7 +22,7 @@ namespace DistilledGames
 
             ChangeInState SecondaryInteractionPressed();
 
-            ChangeInState RotateInputPressed();
+            ChangeInState RotateInput(int dir);
 
             ChangeInState EnterBuildMode();
 

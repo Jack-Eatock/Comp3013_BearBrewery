@@ -368,6 +368,6 @@ namespace DistilledGames
     {
         void OnPlaced(Vector2Int _gridCoords);
         void OnDeleted();
-        bool Rotate();
+        bool Rotate(int dir);
     }
 }

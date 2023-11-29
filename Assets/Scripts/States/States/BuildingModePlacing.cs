@@ -130,10 +130,10 @@ namespace DistilledGames.States
             return StateDefinitions.ChangeInState.NextState;
         }
 
-        public override StateDefinitions.ChangeInState RotateInputPressed()
+        public override StateDefinitions.ChangeInState RotateInput(int dir)
         {
             // Try to rotate building
-            if (buildingPlacing.Rotate())
+            if (buildingPlacing.Rotate(dir))
             {
                 rotated = true;
                 direction = buildingPlacing.GetDirection();
