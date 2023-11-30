@@ -9,13 +9,25 @@ public class BuildingOption : MonoBehaviour
 {
     [SerializeField] private Image image;
     [SerializeField] private TextMeshProUGUI text;
-    private Button button;
+    public Toggle button;
+    Action<bool> cb;
 
-    public void SetupButton(string _text, Sprite _image, Action cb)
+
+    public void SetupButton(string _text, Sprite _image, ToggleGroup group, Action<bool> _cb)
     {
         text.text = _text;
         image.sprite = _image;
-        button = GetComponent<Button>();
-        button.onClick.AddListener(() => cb());
+        button = GetComponent<Toggle>();
+        button.group = group;
+        cb = _cb;
+        button.onValueChanged.AddListener((bool val) => cb(val));
     }
+
+    public void TurnOffWithoutNotif()
+    {
+        button.onValueChanged.RemoveAllListeners();
+        button.isOn = false;
+        button.onValueChanged.AddListener((bool val) => cb(val));
+    }
+
 }

@@ -1,23 +1,29 @@
 using UnityEngine;
+using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 namespace DistilledGames.States
 {
-    public class BuildingMode : BaseState
+    public class BuildingModeDeleting : BaseState
     {
+        private Building buildingPlacing;
+        private List<Vector3Int> requiredCoords = new List<Vector3Int>();
+        private Vector3Int currentSelectedCoords;
         private float timeEntered;
+        private bool rotated = false;
+        private Direction direction = Direction.Up;
+        private RaycastHit2D hit;
 
         public override void StateEnter()
         {
-           
             base.StateEnter();
             timeEntered = Time.time;
-
 
             if (gameManager.PrevState == StateDefinitions.GameStates.BuildingMode.ToString() || gameManager.PrevState == StateDefinitions.GameStates.BuildingModePlacing.ToString() || gameManager.PrevState == StateDefinitions.GameStates.BuildingModeDeleting.ToString())
                 return;
 
             BuildingManager.instance.Running = false;
-            BuildingMenu.instance.SwitchPanel(BuildingMenu.BuildingMenuPanels.BuildingOptions);
+            // Camera.main.fieldOfView
             GameManager.Instance.SwitchToCamController(true);
             BuildingManager.instance.ShowGrid(true);
             BuildingManager.instance.ShowArrows(true);
@@ -28,7 +34,6 @@ namespace DistilledGames.States
 
         public override void StateExit()
         {
-         
             base.StateExit();
 
             if (gameManager.NextState == StateDefinitions.GameStates.BuildingMode.ToString() || gameManager.NextState == StateDefinitions.GameStates.BuildingModePlacing.ToString() || gameManager.NextState == StateDefinitions.GameStates.BuildingModeDeleting.ToString())
@@ -36,7 +41,7 @@ namespace DistilledGames.States
 
             BuildingManager.instance.Running = true;
             GameManager.Instance.SwitchToCamController(false);
-            BuildingManager.instance.ShowGrid(false); 
+            BuildingManager.instance.ShowGrid(false);
             BuildingManager.instance.ShowArrows(false);
             gameManager.SetBearActive(true);
             gameManager.SetItemsActive(true);
@@ -50,6 +55,17 @@ namespace DistilledGames.States
 
         public override StateDefinitions.ChangeInState PrimaryInteractionPressed()
         {
+            // Check if they clicked on a building.
+            hit = Physics2D.GetRayIntersection(Camera.main.ScreenPointToRay(PlayerInputHandler.Instance.PrimaryCursorPosition));
+            if (!hit.collider)
+                return StateDefinitions.ChangeInState.NoChange;
+
+            Debug.Log(hit.collider.transform.name);
+            Building building = hit.collider.transform.root.GetComponentInChildren<Building>();
+
+            if (building != null)
+                BuildingManager.instance.DeleteObject(building);
+
             return StateDefinitions.ChangeInState.NoChange;
         }
 
@@ -63,6 +79,7 @@ namespace DistilledGames.States
         {
             if (Time.time - timeEntered <= .5f)
                 return StateDefinitions.ChangeInState.NoChange;
+            GameObject.Destroy(buildingPlacing.gameObject);
 
             gameManager.NextState = StateDefinitions.GameStates.Normal.ToString();
             return StateDefinitions.ChangeInState.NextState;
