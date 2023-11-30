@@ -79,7 +79,6 @@ namespace DistilledGames.States
         {
             if (Time.time - timeEntered <= .5f)
                 return StateDefinitions.ChangeInState.NoChange;
-            GameObject.Destroy(buildingPlacing.gameObject);
 
             gameManager.NextState = StateDefinitions.GameStates.Normal.ToString();
             return StateDefinitions.ChangeInState.NextState;
