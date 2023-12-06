@@ -10,12 +10,16 @@ namespace DistilledGames
         [Space(10)]
         [SerializeField] private string itemName;
         [Space(10)]
-        [SerializeField] private int value;
+        [SerializeField] private int sellValue;
+        [Space(10)]
+        [SerializeField] private int buyValue;
+
         private Collider2D interactionCollider;
 
         public int ItemID => ID;
         public string ItemName => itemName;
-        public int Value => value;
+        public int SellValue => sellValue;
+        public int BuyValue => buyValue;
         public SpriteRenderer Rend => rend;
 
         private SpriteRenderer rend;

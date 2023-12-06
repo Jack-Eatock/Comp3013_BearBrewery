@@ -19,6 +19,9 @@ namespace DistilledGames
         private Direction currentRotation = Direction.Up;
         [SerializeField] private Sprite rotationUp, rotationRight, rotationDown, rotationLeft;
 
+        [SerializeField]
+        private Transform arrowsHolder;
+
         public SpriteRenderer Rend => renderer;
         public Vector2Int GridCoords => gridCoords; 
 
@@ -32,20 +35,23 @@ namespace DistilledGames
             gridCoords = _gridCoords;
         }
 
-        public virtual bool Rotate()
+        public virtual bool Rotate(int dir)
         {
             if (!isRotatable)
                 return false;
 
+            int newRotation = (int)currentRotation + dir;
 
-            if ((int)currentRotation + 1 > 3)
-                currentRotation = 0;
+            if (newRotation > 3)
+                currentRotation = (Direction) 0;
+            else if (newRotation < 0)
+                currentRotation = (Direction) 3;
             else
-                currentRotation++;
+                currentRotation = (Direction) newRotation;
 
             // Do they have this rotation option?
             if (GetRotationSprite(currentRotation) == null)
-                return Rotate();
+                return Rotate(dir);
              
             renderer.sprite = GetRotationSprite(currentRotation);
 
@@ -109,6 +115,12 @@ namespace DistilledGames
         public virtual void OnDeleted()
         {
            
+        }
+
+        public void ShowArrows(bool state)
+        {
+            if(arrowsHolder != null)
+                arrowsHolder?.gameObject.SetActive(state);
         }
     }
 }

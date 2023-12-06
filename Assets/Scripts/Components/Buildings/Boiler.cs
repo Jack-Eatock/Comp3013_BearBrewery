@@ -19,7 +19,6 @@ namespace DistilledGames
         private int outputItemCount = 0; // This also might need changing according to stack logic
         private bool isProcessing = false;
         private Recipe currentRecipe;
-        private Renderer boilerRenderer; // Renderer to change the texture
 
         [SerializeField]
         private Vector2Int conveyerIn, conveyerOut;
@@ -40,13 +39,16 @@ namespace DistilledGames
                 boilerSpriteRenderer = GetComponent<SpriteRenderer>();
 
             UpdateSprite(); // Set the initial sprite
+
+            Debug.Log("Start: isProcessing = " + isProcessing);
         }
 
         void Update()
         {
             // If there are items and the boiler is not already processing, start the process
-            if (inputItemCount >= (currentRecipe?.InputItems[0].itemCount ?? 0) && !isProcessing)
+            if (currentRecipe != null && inputItemCount >= currentRecipe.InputItems[0].itemCount && !isProcessing)
             {
+                Debug.Log("Calling ProcessItem from Update.");
                 StartCoroutine(ProcessItem());
             }
 
@@ -69,14 +71,10 @@ namespace DistilledGames
 
             if (currentRecipe != null)
             {
-                inputItemCount -= currentRecipe.InputItems[0].itemCount; // Consume input items
-                outputItemCount += currentRecipe.OutputItems[0].itemCount; // Produce output items (assuming one-to-one processing for simplicity)
+                // Consume the correct number of input items
+                inputItemCount -= currentRecipe.InputItems[0].itemCount;
+                outputItemCount += currentRecipe.OutputItems[0].itemCount; // Produce output items
                 Debug.Log($"Processed items. Items in boiler: {inputItemCount}. Items ready: {outputItemCount}");
-            }
-            else
-            {
-                // It is okay if the recipe is not set yet.
-                //Debug.LogError("Current recipe is not set in the boiler.");
             }
 
             isProcessing = false;
@@ -86,13 +84,14 @@ namespace DistilledGames
         {
             if (recipeDictionary.TryGetValue(item.ItemID, out Recipe recipe))
             {
-                // Check for capacity and recipe requirement
-                if (inputItemCount < maxCapacity && inputItemCount < recipe.InputItems[0].itemCount)
+                if (inputItemCount < maxCapacity && inputItemCount + 1 <= recipe.InputItems[0].itemCount)
                 {
                     inputItemCount++;
-                    currentRecipe = recipe; // Set the current recipe
-                    Destroy(item.gameObject); // Consuming the item
+                    currentRecipe = recipe;
+                    Destroy(item.gameObject);
                     Debug.Log("Item added to the boiler. Total items: " + inputItemCount);
+
+                    UpdateSprite(); // Update the sprite immediately after insertion
                     return true;
                 }
             }
@@ -100,6 +99,7 @@ namespace DistilledGames
             Debug.Log("Cannot add item to boiler. It may be full or not suitable for any recipe.");
             return false;
         }
+
 
         public bool TryToRetreiveItem(out Item item)
         {

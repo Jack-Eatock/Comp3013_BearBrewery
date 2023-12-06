@@ -1,8 +1,4 @@
 using UnityEngine;
-using DistilledGames;
-using UnityEngine.InputSystem;
-using UnityEngine.UI;
-using UnityEngine.InputSystem.Composites;
 
 namespace DistilledGames.States
 {
@@ -49,7 +45,7 @@ namespace DistilledGames.States
             return StateDefinitions.ChangeInState.NoChange;
         }
 
-        public virtual StateDefinitions.ChangeInState RotateInputPressed()
+        public virtual StateDefinitions.ChangeInState RotateInput(int dir)
         {
             return StateDefinitions.ChangeInState.NoChange;
         }

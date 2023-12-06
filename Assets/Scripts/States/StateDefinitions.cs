@@ -7,7 +7,7 @@ namespace DistilledGames
 {
     public class StateDefinitions : MonoBehaviour
     {
-        public enum GameStates { Normal, BuildingMode, InMenu, BuildingModePlacing }
+        public enum GameStates { Normal, BuildingMode, InMenu, BuildingModePlacing, EndOfDay, BuildingModeDeleting }
         public enum ChangeInState { NoChange, NextState, PreviousState }
 
         public interface IStateManager
@@ -22,7 +22,7 @@ namespace DistilledGames
 
             ChangeInState SecondaryInteractionPressed();
 
-            ChangeInState RotateInputPressed();
+            ChangeInState RotateInput(int dir);
 
             ChangeInState EnterBuildMode();
 

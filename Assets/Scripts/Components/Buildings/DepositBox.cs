@@ -14,8 +14,7 @@ namespace DistilledGames
         {
             if (item != null)
             {
-                int itemValue = item.Value;
-                // Here, you can add logic to use the item value, e.g., adding to a player's score.
+                int itemValue = item.SellValue;
 
                 GameManager.Instance.EarnedCash(itemValue);
                 Debug.Log("Item deposited with value: " + itemValue);

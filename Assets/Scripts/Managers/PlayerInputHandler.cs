@@ -19,13 +19,17 @@ namespace DistilledGames
         private InputAction enterBuildMode;
         private InputAction secondaryCursorInteraction;
         private InputAction rotate;
+        private InputAction rotateScroll;
 
         private Vector2 primaryCursorPosition;
         private Vector2 movementInput;
         private bool sprint;
         private bool interact;
-        
 
+        // Scroll speed
+        private float timeOfLastScroll = 0;
+        private float timeBetweenScroll = .15f;
+        
 
         #region Getters
 
@@ -58,6 +62,7 @@ namespace DistilledGames
             enterBuildMode = playerInput.actions["EnterBuildMode"];
             secondaryCursorInteraction = playerInput.actions["SecondaryCursorClick"];
             rotate = playerInput.actions["Rotate"];
+            rotateScroll = playerInput.actions["RotateScroll"];
         }
 
         private void Update()
@@ -93,6 +98,7 @@ namespace DistilledGames
             enterBuildMode.performed += InputEnterBuildMode;
             secondaryCursorInteraction.performed += InputSecondaryCursorInteraction;
             rotate.performed += InputRotate;
+            rotateScroll.performed += InputRotateScroll;
         }
 
         private void OnDisable()
@@ -140,10 +146,24 @@ namespace DistilledGames
 
         private void InputRotate(InputAction.CallbackContext ctx)
         {
-            Debug.Log("Secondary CLICK");
-            gamemanager.CheckIfStateShouldChange(gamemanager.ActiveState.RotateInputPressed());
+            gamemanager.CheckIfStateShouldChange(gamemanager.ActiveState.RotateInput(1));
         }
 
+        private void InputRotateScroll(InputAction.CallbackContext ctx)
+        {
+            float x = ctx.ReadValue<float>();
+            int dir = 0;
+            if (x > 0)
+                dir = -1;
+            else
+                dir = 1;
+
+            if (Time.time - timeOfLastScroll > timeBetweenScroll)
+            {
+                gamemanager.CheckIfStateShouldChange(gamemanager.ActiveState.RotateInput(dir));
+                timeOfLastScroll = Time.time;
+            }
+        }
 
         #region Device events 
 

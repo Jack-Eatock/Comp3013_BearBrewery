@@ -2,9 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.UI;
+using DistilledGames.States;
 
 namespace DistilledGames
 {
+    public enum BuildMode { Select, Delete, Placing }
+
     public class BuildingMenu : MonoBehaviour
     {
         public static BuildingMenu instance;
@@ -22,6 +26,15 @@ namespace DistilledGames
         [SerializeField] private CanvasGroup oldMessage;
         [SerializeField] private Transform newMessage;
         private IEnumerator showingHidingMenu;
+
+        [SerializeField]
+        private ToggleGroup toggleGroup;
+
+        [SerializeField]
+        private Toggle mouseMode;
+        private List<BuildingOption> dynamicToggles = new List<BuildingOption>();
+
+        public BuildMode buildingMode;
 
 
         private void Awake()
@@ -45,20 +58,52 @@ namespace DistilledGames
 
         private void GenerateOptions()
         {
+            dynamicToggles.Clear();
             foreach (Transform child in optionHolder)
                 Destroy(child.gameObject);
 
             foreach (BuildingData buildingData in GameManager.Instance.GameConfig.BuildingData)
             {
                 BuildingOption option = GameObject.Instantiate(optionTemplate, optionHolder);
-                option.SetupButton(buildingData.Name, buildingData.DisplayImage, () => { OptionClicked(buildingData); });
+                option.SetupButton(buildingData.Name, buildingData.DisplayImage, toggleGroup, (bool val) => { OptionToggled(buildingData, val); });
+                dynamicToggles.Add(option);
             }
         }
 
-        private void OptionClicked(BuildingData buildingSelected)
+        private void OptionToggled(BuildingData buildingSelected, bool toggledOn)
         {
-            Debug.Log("Option picked! " );
+            if (!toggledOn)
+                return;
+
+
+            Debug.Log("Option picked! ");
             BuildingManager.instance.selectedBuilding = buildingSelected;
+            BuildingSelected(true);
+        }
+
+        public void DeleteOptionSelected(bool val)
+        {
+            if (!val)
+                return;
+            buildingMode = BuildMode.Delete;
+            GameManager.Instance.NextState = StateDefinitions.GameStates.BuildingModeDeleting.ToString();
+            GameManager.Instance.CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
+        }
+
+        public void SelectOptionSelected(bool val)
+        {
+            if (!val)
+                return;
+            buildingMode = BuildMode.Select;
+            GameManager.Instance.NextState = StateDefinitions.GameStates.BuildingMode.ToString();
+            GameManager.Instance.CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
+        }
+
+        public void BuildingSelected(bool val)
+        {
+            if (!val)
+                return;
+            buildingMode = BuildMode.Placing;
             GameManager.Instance.NextState = StateDefinitions.GameStates.BuildingModePlacing.ToString();
             GameManager.Instance.CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
         }
@@ -68,6 +113,9 @@ namespace DistilledGames
             if (showingHidingMenu != null)
                 StopCoroutine(showingHidingMenu);
 
+            toggleGroup.SetAllTogglesOff(false);
+            mouseMode.SetIsOnWithoutNotify(true);
+
             ShowPanel(activePanel, true);
             showingHidingMenu = ShowingOrHiding(true, blendTime);
             StartCoroutine(showingHidingMenu);
@@ -76,6 +124,13 @@ namespace DistilledGames
 
         public void HideMenu()
         {
+            toggleGroup.SetAllTogglesOff(false);
+            //foreach (BuildingOption toggle in dynamicToggles)
+            //{
+            //    toggle.TurnOffWithoutNotif();
+            //}
+           
+
             if (showingHidingMenu != null)
                 StopCoroutine(showingHidingMenu);
 

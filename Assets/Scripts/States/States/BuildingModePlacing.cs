@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 namespace DistilledGames.States
 {
@@ -14,19 +15,17 @@ namespace DistilledGames.States
 
         public override void StateEnter()
         {
-            BuildingManager.instance.Running = false;
-
-
             base.StateEnter();
             timeEntered = Time.time;
             SpawnBuilding();
-            BuildingMenu.instance.SwitchPanel(BuildingMenu.BuildingMenuPanels.PlacingBuilding);
 
-            if (gameManager.PrevState == StateDefinitions.GameStates.BuildingMode.ToString())
+            if (gameManager.PrevState == StateDefinitions.GameStates.BuildingMode.ToString() || gameManager.PrevState == StateDefinitions.GameStates.BuildingModePlacing.ToString() || gameManager.PrevState == StateDefinitions.GameStates.BuildingModeDeleting.ToString())
                 return;
-
+            BuildingManager.instance.Running = false;
+            // Camera.main.fieldOfView
             GameManager.Instance.SwitchToCamController(true);
             BuildingManager.instance.ShowGrid(true);
+            BuildingManager.instance.ShowArrows(true);
             gameManager.SetBearActive(false);
             gameManager.SetItemsActive(false);
             MenuManager.Instance.ShowMenu(MenuManager.Menus.BuildingMenu);
@@ -34,15 +33,16 @@ namespace DistilledGames.States
 
         public override void StateExit()
         {
-
-            BuildingManager.instance.Running = true;
+            GameObject.Destroy(buildingPlacing.gameObject);
             base.StateExit();
 
-            if (gameManager.NextState == StateDefinitions.GameStates.BuildingMode.ToString())
+            if (gameManager.NextState == StateDefinitions.GameStates.BuildingMode.ToString() || gameManager.NextState == StateDefinitions.GameStates.BuildingModePlacing.ToString() || gameManager.NextState == StateDefinitions.GameStates.BuildingModeDeleting.ToString())
                 return;
 
+            BuildingManager.instance.Running = true;
             GameManager.Instance.SwitchToCamController(false);
             BuildingManager.instance.ShowGrid(false);
+            BuildingManager.instance.ShowArrows(false);
             gameManager.SetBearActive(true);
             gameManager.SetItemsActive(true);
             MenuManager.Instance.HideMenu(MenuManager.Menus.BuildingMenu);
@@ -51,6 +51,9 @@ namespace DistilledGames.States
         public override void StateUpdate()
         {
             base.StateUpdate();
+
+            if (buildingPlacing == null)
+                return;
 
             Vector3Int closestCoord = BuildingManager.instance.ClosestGridCoord();
 
@@ -71,22 +74,18 @@ namespace DistilledGames.States
 
         public override StateDefinitions.ChangeInState PrimaryInteractionPressed()
         {
+            if (buildingPlacing == null)
+                return StateDefinitions.ChangeInState.NoChange;
+
             Debug.Log("Try to place object");
 
-            if (BuildingManager.instance.PlaceObject(new Vector2Int(currentSelectedCoords.x, currentSelectedCoords.y), buildingPlacing))
+            if (!EventSystem.current.IsPointerOverGameObject() && BuildingManager.instance.PlaceObject(new Vector2Int(currentSelectedCoords.x, currentSelectedCoords.y), buildingPlacing))
             {
                 Debug.Log("placed");
 
                 // Placing multiple?
-                if (PlayerInputHandler.Instance.Sprint)
-                {
-                    SpawnBuilding();
-                    return StateDefinitions.ChangeInState.NoChange;
-                }
-      
-
-                gameManager.NextState = StateDefinitions.GameStates.BuildingMode.ToString();
-                return StateDefinitions.ChangeInState.NextState;
+                SpawnBuilding();
+                return StateDefinitions.ChangeInState.NoChange;
             }
             else
             {
@@ -101,6 +100,7 @@ namespace DistilledGames.States
         {
             buildingPlacing = GameObject.Instantiate(BuildingManager.instance.selectedBuilding.BuidlingPrefab);
             buildingPlacing.data = BuildingManager.instance.selectedBuilding;
+            buildingPlacing.ShowArrows(true);
 
             if (rotated)
                 buildingPlacing.SetRotation(direction);
@@ -116,24 +116,19 @@ namespace DistilledGames.States
         {
             if (Time.time - timeEntered <= .5f)
                 return StateDefinitions.ChangeInState.NoChange;
-
             GameObject.Destroy(buildingPlacing.gameObject);
 
             gameManager.NextState = StateDefinitions.GameStates.Normal.ToString();
             return StateDefinitions.ChangeInState.NextState;
         }
 
-        public override StateDefinitions.ChangeInState SecondaryInteractionPressed()
+        public override StateDefinitions.ChangeInState RotateInput(int dir)
         {
-            GameObject.Destroy(buildingPlacing.gameObject);
-            gameManager.NextState = StateDefinitions.GameStates.BuildingMode.ToString();
-            return StateDefinitions.ChangeInState.NextState;
-        }
+            if (buildingPlacing == null)
+                return StateDefinitions.ChangeInState.NoChange;
 
-        public override StateDefinitions.ChangeInState RotateInputPressed()
-        {
             // Try to rotate building
-            if (buildingPlacing.Rotate())
+            if (buildingPlacing.Rotate(dir))
             {
                 rotated = true;
                 direction = buildingPlacing.GetDirection();
