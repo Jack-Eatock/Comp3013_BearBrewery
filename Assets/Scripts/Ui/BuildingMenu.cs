@@ -56,6 +56,15 @@ namespace DistilledGames
             activePanel = defaultPanel;
         }
 
+        public void RefreshCosts()
+        {
+            for (int i = 0; i < dynamicToggles.Count; i++)
+            {
+                bool canTheyAffordIt = dynamicToggles[i].buildingData.Cost < GameManager.Instance.Cash;
+                dynamicToggles[i].UpdateCost(canTheyAffordIt);
+            }
+        }
+
         private void GenerateOptions()
         {
             dynamicToggles.Clear();
@@ -65,7 +74,7 @@ namespace DistilledGames
             foreach (BuildingData buildingData in GameManager.Instance.GameConfig.BuildingData)
             {
                 BuildingOption option = GameObject.Instantiate(optionTemplate, optionHolder);
-                option.SetupButton(buildingData.Name, buildingData.DisplayImage, toggleGroup, (bool val) => { OptionToggled(buildingData, val); });
+                option.SetupButton(buildingData,buildingData.Name, buildingData.DisplayImage, toggleGroup, "£" + buildingData.Cost.ToString(), (bool val) => { OptionToggled(buildingData, val); });
                 dynamicToggles.Add(option);
             }
         }

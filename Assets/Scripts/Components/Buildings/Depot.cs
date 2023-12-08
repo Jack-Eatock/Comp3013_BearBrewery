@@ -84,7 +84,7 @@ namespace DistilledGames
 
         #region Player Interacting
 
-        public bool TryToInsertItem(Item item)
+        public bool TryToInsertItem(Item item, bool conveyer = false)
         {
             return false;
         }

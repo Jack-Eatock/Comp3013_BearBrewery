@@ -119,6 +119,10 @@ namespace DistilledGames
         /// <returns></returns>
         public bool PlaceObject(Vector2Int coords, Building objToPlace)
         {
+            // Can they afford it?
+            if (objToPlace.data.Cost > GameManager.Instance.Cash)
+                return false;
+
             if (!CanObjectBePlacedHere(coords, objToPlace))
                 return false;
 

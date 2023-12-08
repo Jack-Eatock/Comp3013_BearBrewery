@@ -95,7 +95,7 @@ namespace DistilledGames
 
         #region Interaction from Player
 
-        public bool TryToInsertItem(Item item)
+        public bool TryToInsertItem(Item item, bool conveyer = false)
         {
             if (itemOnBelt == null)
             {

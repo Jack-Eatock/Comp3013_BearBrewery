@@ -19,6 +19,9 @@ namespace DistilledGames
 
         [SerializeField] private GameConfig gameConfig;
 
+        [SerializeField]
+        private float startingCash = 200;
+
         // Playthrough
         private List<Item> items = new List<Item>();
         private double cash;
@@ -27,7 +30,7 @@ namespace DistilledGames
         public float ConveyerBeltsTimeToMove = 1;
 
         #region Getters
-
+        public double Cash => cash;
         public BearController BearController => bearController; // simplified getter
         public CamController CamController => camController;
         public GameConfig GameConfig => gameConfig;
@@ -75,6 +78,8 @@ namespace DistilledGames
 
         private void Start()
         {
+            cash = startingCash;
+            UserInterface.Instance.UpdateRevText(cash.ToString());
             AudioManager.instance.Music_PlayTrack("Music");
         }
 
@@ -149,6 +154,12 @@ namespace DistilledGames
         {
             AudioManager.instance.SFX_PlayClip("MadeCash", 1f);
             cash += _cash;
+            UserInterface.Instance.UpdateRevText(cash.ToString());
+        }
+
+        public void SpentCash(double _cash)
+        {
+            cash -= _cash;
             UserInterface.Instance.UpdateRevText(cash.ToString());
         }
         #endregion
