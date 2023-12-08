@@ -73,6 +73,11 @@ namespace DistilledGames
             CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
         }
 
+        private void Start()
+        {
+            AudioManager.instance.Music_PlayTrack("Music");
+        }
+
         private void Update()
         {
             _activeState.StateUpdate();
@@ -142,6 +147,7 @@ namespace DistilledGames
 
         public void EarnedCash(double _cash)
         {
+            AudioManager.instance.SFX_PlayClip("MadeCash", 1f);
             cash += _cash;
             UserInterface.Instance.UpdateRevText(cash.ToString());
         }

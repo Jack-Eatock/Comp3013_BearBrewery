@@ -16,6 +16,7 @@ namespace DistilledGames
 
         private Collider2D interactionCollider;
 
+
         public int ItemID => ID;
         public string ItemName => itemName;
         public int SellValue => sellValue;
@@ -29,6 +30,11 @@ namespace DistilledGames
             GameManager.Instance.RegisterItem(this);
             rend = GetComponent<SpriteRenderer>();
             interactionCollider = transform.GetChild(0).GetComponent<Collider2D>();
+        }
+
+        public void SetUpItem(int _id)
+        {
+            ID = _id;
         }
 
         public bool TryToInsertItem(Item item)

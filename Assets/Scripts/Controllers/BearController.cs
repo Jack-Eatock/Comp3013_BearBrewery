@@ -1,4 +1,5 @@
 using DistilledGames;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BearController : MonoBehaviour
@@ -13,6 +14,10 @@ public class BearController : MonoBehaviour
     [SerializeField] private Transform interactionZoneTransform;
     [SerializeField] private Animator bearAnimator;  // Reference to the Animator component.
     [SerializeField] private float walkAnimSpeed = 1.0f;  // Base speed for walking animation.
+
+    [SerializeField] private List<AudioClip> footStepAudioClips = new List<AudioClip>();
+    [SerializeField] private float timeBetweenStep = .4f, footStepVolume = .5f;
+    private float timeOfLastStep;
 
     private Rigidbody2D rig;
     private SpriteRenderer rend;
@@ -70,6 +75,12 @@ public class BearController : MonoBehaviour
         if (currentMoveDirection != Vector3.zero)
         {
             bearAnimator.SetBool("isWalking", true);
+            if (Time.time - timeOfLastStep  > timeBetweenStep)
+            {
+                AudioManager.instance.SFX_PlayClip(footStepAudioClips[Random.Range(0, footStepAudioClips.Count)], footStepVolume);
+                timeOfLastStep = Time.time;
+            }
+
         }
         else
         {
@@ -126,7 +137,7 @@ public class BearController : MonoBehaviour
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(detectionCollider.transform.position, detectionCollider.radius, interactionLayer);
         if (heldItem != null)
         {
-            if (TryInsertItem(hitColliders)) {}
+            if (TryInsertItem(hitColliders))  { }
             else
                 DropHeldItem();
         }
@@ -151,9 +162,14 @@ public class BearController : MonoBehaviour
                 // Try inserting it. If it works great, otherwise keep checking.
                 if (interactable.TryToInsertItem(heldItem))
                 {
+                    AudioManager.instance.SFX_PlayClip("PutIntoMachine", 1f);
                     heldItem.SetInteractable(false);
                     heldItem = null;
                     return true;
+                }
+                else
+                {
+                    AudioManager.instance.SFX_PlayClip("CantPlace", 1f);
                 }
             }
         }
@@ -163,6 +179,7 @@ public class BearController : MonoBehaviour
 
     private void DropHeldItem()
     {
+        AudioManager.instance.SFX_PlayClip("DropOnFloor", 1f);
         // Drop the held item slightly below the center of the collider
         heldItem.transform.position = detectionCollider.transform.position + new Vector3(0, -detectionCollider.radius * 0.2f, 0);
         heldItem.transform.parent = null;
@@ -193,6 +210,7 @@ public class BearController : MonoBehaviour
 
     private void PickUpItem(Item item)
     {
+        AudioManager.instance.SFX_PlayClip("PickUp", 1f);
         item.transform.position = detectionCollider.transform.position;
         item.transform.parent = detectionCollider.transform;
         heldItemOriginalSortingOrder = item.GetComponent<SpriteRenderer>().sortingOrder;

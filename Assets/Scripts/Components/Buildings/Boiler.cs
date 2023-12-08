@@ -1,177 +1,65 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace DistilledGames
 {
-    public class Boiler : Building, IInteractable, IConveyerInteractable
+    public class Boiler : BaseMachine
     {
-        [SerializeField] private List<Recipe> recipes; // List of Scriptable Object recipes
-        [SerializeField] private int maxCapacity;
-        [SerializeField] private float processingTime; // in seconds
         [SerializeField] private SpriteRenderer boilerSpriteRenderer; // Make sure to assign this in the Inspector.
-
         [SerializeField] private Sprite idleSprite; // Sprite when the boiler is not in use
         [SerializeField] private Sprite activeSprite; // Sprite when the boiler is in use
 
-        private Dictionary<int, Recipe> recipeDictionary;
-        private int inputItemCount = 0; // You may want to handle this differently depending on your item stack logic
-        private int outputItemCount = 0; // This also might need changing according to stack logic
-        private bool isProcessing = false;
-        private Recipe currentRecipe;
+        [SerializeReference]
+        private AudioClip runningSound, outputSound, inputSound;
+        private SFXInGame sfxController;
 
-        [SerializeField]
-        private Vector2Int conveyerIn, conveyerOut;
 
-        private void Start()
+        protected override void Awake()
         {
-            recipeDictionary = new Dictionary<int, Recipe>();
-            foreach (Recipe recipeSO in recipes)
-            {
-                int inputID = recipeSO.InputItems[0].itemPrefab.ItemID; // Assumes the boiler only uses the first input item for processing
-                if (!recipeDictionary.ContainsKey(inputID))
-                    recipeDictionary.Add(inputID, recipeSO);
-                else
-                    Debug.LogWarning("Duplicate recipe detected for item ID: " + inputID);
-            }
+            base.Awake();
+            sfxController = GetComponent<SFXInGame>();
+        }
 
+        protected override void Start()
+        {
+            base.Start();
+           
             if (boilerSpriteRenderer == null)
                 boilerSpriteRenderer = GetComponent<SpriteRenderer>();
-
-            UpdateSprite(); // Set the initial sprite
-
-            Debug.Log("Start: isProcessing = " + isProcessing);
         }
 
-        void Update()
+        protected override void Update()
         {
-            // If there are items and the boiler is not already processing, start the process
-            if (currentRecipe != null && inputItemCount >= currentRecipe.InputItems[0].itemCount && !isProcessing)
-            {
-                Debug.Log("Calling ProcessItem from Update.");
-                StartCoroutine(ProcessItem());
-            }
-
-            UpdateSprite(); // Update the texture based on the boiler's state
+            base.Update();
         }
 
-        private void UpdateSprite()
+        protected override void UpdateSprite()
         {
+            base.UpdateSprite();
+
             // Check if there are items in the input or output 
-            bool isActive = inputItemCount > 0 || outputItemCount > 0;
+            bool isActive = CanWeProcess();
+
+            if (isActive)
+                sfxController.LoopingClipPlay(runningSound, 1f);
+            else
+                sfxController.LoopingClipStop();
 
             // Update the sprite
             boilerSpriteRenderer.sprite = isActive ? activeSprite : idleSprite;
         }
 
-        private IEnumerator ProcessItem()
+        protected override void InputtedFromConveyer()
         {
-            isProcessing = true;
-            yield return new WaitForSeconds(processingTime);
-
-            if (currentRecipe != null)
-            {
-                // Consume the correct number of input items
-                inputItemCount -= currentRecipe.InputItems[0].itemCount;
-                outputItemCount += currentRecipe.OutputItems[0].itemCount; // Produce output items
-                Debug.Log($"Processed items. Items in boiler: {inputItemCount}. Items ready: {outputItemCount}");
-            }
-
-            isProcessing = false;
+            base.InputtedFromConveyer();
+            sfxController.PlayOneClip(inputSound, 1f);
         }
 
-        public bool TryToInsertItem(Item item)
+        protected override void OutputedToConveyer()
         {
-            if (recipeDictionary.TryGetValue(item.ItemID, out Recipe recipe))
-            {
-                if (inputItemCount < maxCapacity && inputItemCount + 1 <= recipe.InputItems[0].itemCount)
-                {
-                    inputItemCount++;
-                    currentRecipe = recipe;
-                    Destroy(item.gameObject);
-                    Debug.Log("Item added to the boiler. Total items: " + inputItemCount);
-
-                    UpdateSprite(); // Update the sprite immediately after insertion
-                    return true;
-                }
-            }
-
-            Debug.Log("Cannot add item to boiler. It may be full or not suitable for any recipe.");
-            return false;
+            base.OutputedToConveyer();
+            sfxController.PlayOneClip(outputSound, 1f);
         }
 
-
-        public bool TryToRetreiveItem(out Item item)
-        {
-            item = null;
-            if (outputItemCount > 0)
-            {
-                outputItemCount--;
-                item = Instantiate(currentRecipe.OutputItems[0].itemPrefab); // Use the output prefab stored during item insertion
-                item.SetInteractable(false);
-                Debug.Log("Item removed from boiler. Items left: " + outputItemCount);
-                return true;
-            }
-            else
-            {
-                Debug.Log("No items to remove from boiler.");
-                return false;
-            }
-        }
-
-        #region Conveyer Belt
-
-        /// <summary>
-        /// A conveyer belt is trying to input. Should it be able to??
-        /// </summary>
-        public bool ConveyerTryToInsertItem(Item item, Vector2Int insertFromCoords)
-        {
-            // Try to take in the item
-            return TryToInsertItem(item);
-        }
-
-        public bool ConveyerTryToRetrieveItem(Vector2Int RetrieveFromCoords, out Item item)
-        {
-            item = null;
-
-            // Are the requested coords lining up with the output coords.
-            Vector2Int outputCoords = gridCoords + conveyerOut;
-            if (RetrieveFromCoords != outputCoords)
-                return false;
-
-            // Do we have items to output??
-            if (outputItemCount <= 0)
-                return false;
-
-            item = Instantiate(currentRecipe.OutputItems[0].itemPrefab); // Use the output prefab stored during item insertion
-            item.SetInteractable(false);
-            item.transform.position = gameObject.transform.position;
-            outputItemCount--;
-            return true;
-        }
-
-        public bool CanAnItemBeInserted(Item item, Vector2Int insertFromCoords)
-        {
-            if (recipeDictionary.TryGetValue(item.ItemID, out Recipe recipe))
-            {
-                // Check for capacity and recipe requirement
-                if (inputItemCount < maxCapacity && inputItemCount < recipe.InputItems[0].itemCount)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public bool CanConnectIn(Vector2Int coords)
-        {
-            // Do the coords allign with the input coords.
-            Vector2Int inputCoords = gridCoords + conveyerIn;
-            if (inputCoords != coords)
-                return false;
-            return true;
-        }
-
-        #endregion
     }
 }
