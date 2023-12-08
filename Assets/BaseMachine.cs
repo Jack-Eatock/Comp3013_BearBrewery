@@ -127,7 +127,7 @@ namespace DistilledGames
             return canProcessRecipee;
         }
 
-        public virtual bool TryToInsertItem(Item item)
+        public virtual bool TryToInsertItem(Item item, bool conveyer = false)
         {
             // If the machine is empty. We set a new recipee.
             if (storedItems.Count == 0)
@@ -151,7 +151,7 @@ namespace DistilledGames
                 // Is this number + 1 more than the needed amount for the recipee times the multiplier
                 if (numOfItemInMachine + 1 <= numOfItemsAllowed)
                 {
-                    InsertItem(item);
+                    InsertItem(item, conveyer);
                     return true;
                 }
             }
@@ -160,10 +160,11 @@ namespace DistilledGames
             return false;
         }
 
-        protected virtual void InsertItem(Item item)
+        protected virtual void InsertItem(Item item, bool dontDestroyItem = false)
         {
             AddItem(ref storedItems, item.ItemID);
-            Destroy(item.gameObject);
+            if (!dontDestroyItem)
+                Destroy(item.gameObject);
             UpdateSprite(); // Update the sprite immediately after insertion
         }
 
@@ -276,14 +277,39 @@ namespace DistilledGames
         public virtual bool ConveyerTryToInsertItem(Item item, Vector2Int insertFromCoords)
         {
             // Try to take in the item
-            if (TryToInsertItem(item))
+            if (TryToInsertItem(item, true))
             {
-                InputtedFromConveyer();
+                StartCoroutine(MoveItemFromConveyerIntoMachine(item, insertFromCoords));
                 return true;
             }
             else
                 return false;
         
+        }
+
+        private IEnumerator MoveItemFromConveyerIntoMachine(Item item, Vector2Int inputCoords)
+        {
+            Vector3 startingPos = item.transform.position;
+            float timeStarted = Time.time;
+            float timeToMove = GameManager.Instance.ConveyerBeltsTimeToMove;
+            Vector3 targetPos = BuildingManager.instance.GetWorldPosOfGridCoord(new Vector3Int(inputCoords.x, inputCoords.y, 2));
+            targetPos.x += .5f;
+            targetPos.y += .5f;
+
+            while (Time.time - timeStarted < timeToMove)
+            {
+                float percentageComplete = (Time.time - timeStarted) / timeToMove;
+                if (item != null)
+                    item.transform.position = Vector3.Lerp(startingPos, targetPos, percentageComplete);
+                else
+                    yield break;
+                yield return new WaitForEndOfFrame();
+            }
+            if (item != null)
+                item.transform.position = targetPos;
+
+            InputtedFromConveyer();
+            Destroy(item.gameObject);
         }
 
         public virtual bool ConveyerTryToRetrieveItem(Vector2Int RetrieveFromCoords, out Item item)
