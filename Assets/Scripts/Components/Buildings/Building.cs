@@ -25,7 +25,7 @@ namespace DistilledGames
         public SpriteRenderer Rend => renderer;
         public Vector2Int GridCoords => gridCoords; 
 
-        private void Awake()
+        protected virtual void Awake()
         {
             renderer = GetComponent<SpriteRenderer>();
         }

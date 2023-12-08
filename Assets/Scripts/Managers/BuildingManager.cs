@@ -122,6 +122,7 @@ namespace DistilledGames
             if (!CanObjectBePlacedHere(coords, objToPlace))
                 return false;
 
+            Debug.Log("a  " + objToPlace + " " + objToPlace.Rend);
             Helper.UpdateSortingOrder(objToPlace.Rend, objToPlace.transform);
             placedObjects.Add(coords, objToPlace);
 

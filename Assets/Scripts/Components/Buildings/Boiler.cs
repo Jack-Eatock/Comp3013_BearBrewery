@@ -1,27 +1,42 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using static Recipe;
 
 namespace DistilledGames
 {
     public class Boiler : Building, IInteractable, IConveyerInteractable
     {
         [SerializeField] private List<Recipe> recipes; // List of Scriptable Object recipes
-        [SerializeField] private int maxCapacity;
+        [SerializeField] private int maxRecipeItemsMulitplier; // Quanity of a recipee that can  fill at one time. A recipee that requires 1 of x and 2 of y with a maxCap as  2 would be allowed 2 and 4.
         [SerializeField] private float processingTime; // in seconds
         [SerializeField] private SpriteRenderer boilerSpriteRenderer; // Make sure to assign this in the Inspector.
+        [SerializeField] private int maxOutputItems = 3;
 
         [SerializeField] private Sprite idleSprite; // Sprite when the boiler is not in use
         [SerializeField] private Sprite activeSprite; // Sprite when the boiler is in use
 
         private Dictionary<int, Recipe> recipeDictionary;
-        private int inputItemCount = 0; // You may want to handle this differently depending on your item stack logic
-        private int outputItemCount = 0; // This also might need changing according to stack logic
+        private Dictionary<int, int> storedItems = new Dictionary<int, int>(); // Id , number of
+        private Dictionary<int, int> outputItems = new Dictionary<int, int>(); 
+
         private bool isProcessing = false;
         private Recipe currentRecipe;
 
         [SerializeField]
         private Vector2Int conveyerIn, conveyerOut;
+
+        [SerializeReference]
+        private AudioClip runningSound, outputSound;
+        private SFXInGame sfxController;
+
+
+        protected override void Awake()
+        {
+            base.Awake();
+            sfxController = GetComponent<SFXInGame>();
+        }
 
         private void Start()
         {
@@ -46,35 +61,71 @@ namespace DistilledGames
         void Update()
         {
             // If there are items and the boiler is not already processing, start the process
-            if (currentRecipe != null && inputItemCount >= currentRecipe.InputItems[0].itemCount && !isProcessing)
+            if (CanWeProcess() && !isProcessing)
             {
                 Debug.Log("Calling ProcessItem from Update.");
                 StartCoroutine(ProcessItem());
             }
-
-            UpdateSprite(); // Update the texture based on the boiler's state
         }
 
         private void UpdateSprite()
         {
             // Check if there are items in the input or output 
-            bool isActive = inputItemCount > 0 || outputItemCount > 0;
+            bool isActive = CanWeProcess();
+
+            if (isActive)
+                sfxController.LoopingClipPlay(runningSound, 1f);
+            else
+                sfxController.LoopingClipStop();
 
             // Update the sprite
             boilerSpriteRenderer.sprite = isActive ? activeSprite : idleSprite;
         }
 
+        private bool CanWeProcess()
+        {
+            if (currentRecipe == null)
+                return false;
+
+            // Check the current recipe
+            foreach (ItemCountPair pair in currentRecipe.InputItems)
+            {
+                // Do we have this item? 
+                int numOfItem = NumOfItem(ref storedItems, pair.itemPrefab.ItemID);
+                if (pair.itemCount > numOfItem)
+                    return false;
+            }
+
+            // Make sure we are not full of output items#]
+            if (NumOfItemsTotal(ref outputItems) + 1 > maxOutputItems)
+                return false;
+
+            return true;
+        }
+
         private IEnumerator ProcessItem()
         {
             isProcessing = true;
+            UpdateSprite();
             yield return new WaitForSeconds(processingTime);
 
             if (currentRecipe != null)
             {
                 // Consume the correct number of input items
-                inputItemCount -= currentRecipe.InputItems[0].itemCount;
-                outputItemCount += currentRecipe.OutputItems[0].itemCount; // Produce output items
-                Debug.Log($"Processed items. Items in boiler: {inputItemCount}. Items ready: {outputItemCount}");
+                foreach (ItemCountPair pair in currentRecipe.InputItems)
+                {
+                    for (int i = 0; i < pair.itemCount; i++)
+                        RemoveItem(ref storedItems, pair.itemPrefab.ItemID);
+                }
+
+                // Add output items
+                foreach (ItemCountPair pair in currentRecipe.OutputItems)
+                {
+                    for (int i = 0; i < pair.itemCount; i++)
+                        AddItem(ref  outputItems, pair.itemPrefab.ItemID);
+                }
+
+                Debug.Log($"Processed items)");
             }
 
             isProcessing = false;
@@ -82,16 +133,29 @@ namespace DistilledGames
 
         public bool TryToInsertItem(Item item)
         {
-            if (recipeDictionary.TryGetValue(item.ItemID, out Recipe recipe))
+            // If the machine is empty. We set a new recipee.
+            if (storedItems.Count == 0)
             {
-                if (inputItemCount < maxCapacity && inputItemCount + 1 <= recipe.InputItems[0].itemCount)
-                {
-                    inputItemCount++;
+                if (recipeDictionary.TryGetValue(item.ItemID, out Recipe recipe))
                     currentRecipe = recipe;
-                    Destroy(item.gameObject);
-                    Debug.Log("Item added to the boiler. Total items: " + inputItemCount);
+            }
 
-                    UpdateSprite(); // Update the sprite immediately after insertion
+            // We want to only take in items for this recipee.
+            // Is this item in the recipee?
+            if (IsItemInRecipee(item.ItemID))
+            {
+                // It is. But do we have enough space for it free?
+                // Space per item is relevent to their ratio. 
+                // How many of this item are in it already?
+                int numOfItemInMachine = NumOfItem(ref storedItems, item.ItemID);
+                int numOfItemsAllowed = MaxNumberOfItemAllowed(item.ItemID);
+
+                Debug.Log("Num items" + numOfItemInMachine);
+                Debug.Log(" Max items " + numOfItemsAllowed);
+                // Is this number + 1 more than the needed amount for the recipee times the multiplier
+                if (numOfItemInMachine + 1 <= numOfItemsAllowed)
+                {
+                    InsertItem(item);
                     return true;
                 }
             }
@@ -100,23 +164,89 @@ namespace DistilledGames
             return false;
         }
 
+        private void InsertItem(Item item)
+        {
+            AddItem(ref storedItems, item.ItemID);
+            Destroy(item.gameObject);
+            UpdateSprite(); // Update the sprite immediately after insertion
+        }
+
+        private int MaxNumberOfItemAllowed(int id)
+        {
+            // find its pair in the recipee
+            for (int i = 0; i < currentRecipe.InputItems.Count; i++)
+            {
+                if (currentRecipe.InputItems[i].itemPrefab.ItemID == id)
+                    return currentRecipe.InputItems[i].itemCount * maxRecipeItemsMulitplier;
+            }
+            return 0;
+        }
+
+        private int NumOfItem(ref Dictionary<int, int> _items, int id)
+        {
+            int num = 0;
+            if (_items.TryGetValue(id, out num))
+                return num;
+            return num;
+        }
+
+        private int NumOfItemsTotal(ref Dictionary<int, int> _items)
+        {
+            int count = 0;
+            foreach (KeyValuePair<int, int> pair in _items)
+                count += pair.Value;
+            return count;
+        }
+
+        private bool IsItemInRecipee(int id)
+        {
+            for (int i = 0; i < currentRecipe.InputItems.Count; i++)
+            {
+                if (currentRecipe.InputItems[i].itemPrefab.ItemID == id)
+                    return true;
+            }
+            return false;
+        }
+
+        private void AddItem(ref Dictionary<int, int> _items, int id)
+        {
+            if (_items.ContainsKey(id))
+                _items[id]++;
+            else
+                _items.Add(id, 1);
+        }
+
+        private void RemoveItem(ref Dictionary<int, int> _items, int id)
+        {
+            if (_items.ContainsKey(id))
+            {
+                if (_items[id] > 1)
+                    _items[id]--;
+                else
+                    _items.Remove(id);
+            }
+        }
 
         public bool TryToRetreiveItem(out Item item)
         {
             item = null;
-            if (outputItemCount > 0)
+            if (outputItems.Count > 0)
             {
-                outputItemCount--;
-                item = Instantiate(currentRecipe.OutputItems[0].itemPrefab); // Use the output prefab stored during item insertion
-                item.SetInteractable(false);
-                Debug.Log("Item removed from boiler. Items left: " + outputItemCount);
-                return true;
+                KeyValuePair<int,int> itemPair = outputItems.First();
+                ItemDefinition itemDefinition;
+                if (GameManager.Instance.GameConfig.GetItemDefinitionById(itemPair.Key, out itemDefinition))
+                {
+                    // Remove item from output items
+                    RemoveItem(ref outputItems, itemPair.Key);
+                    item = Instantiate(itemDefinition.item);
+                    item.SetInteractable(false);
+                    return true;
+                }
+                else
+                    Debug.LogError("Failed to get item definition from id!");
             }
-            else
-            {
-                Debug.Log("No items to remove from boiler.");
-                return false;
-            }
+            Debug.Log("No items to remove from boiler.");
+            return false;
         }
 
         #region Conveyer Belt
@@ -139,27 +269,32 @@ namespace DistilledGames
             if (RetrieveFromCoords != outputCoords)
                 return false;
 
-            // Do we have items to output??
-            if (outputItemCount <= 0)
-                return false;
-
-            item = Instantiate(currentRecipe.OutputItems[0].itemPrefab); // Use the output prefab stored during item insertion
-            item.SetInteractable(false);
-            item.transform.position = gameObject.transform.position;
-            outputItemCount--;
-            return true;
+            if (TryToRetreiveItem(out item))
+            {
+                sfxController.PlayOneClip(outputSound, 1f);
+                item.transform.position = gameObject.transform.position;
+                return true;
+            }
+            return false;
         }
 
         public bool CanAnItemBeInserted(Item item, Vector2Int insertFromCoords)
         {
-            if (recipeDictionary.TryGetValue(item.ItemID, out Recipe recipe))
+            // If the machine is empty. We set a new recipee.
+            if (storedItems.Count == 0)
+                return true;
+
+            if (IsItemInRecipee(item.ItemID))
             {
-                // Check for capacity and recipe requirement
-                if (inputItemCount < maxCapacity && inputItemCount < recipe.InputItems[0].itemCount)
-                {
+                int numOfItemInMachine = NumOfItem(ref  storedItems, item.ItemID);
+                int numOfItemsAllowed = MaxNumberOfItemAllowed(item.ItemID);
+
+                // Is this number + 1 more than the needed amount for the recipee times the multiplier
+                if (numOfItemInMachine + 1 <= numOfItemsAllowed)
                     return true;
-                }
             }
+
+            Debug.Log("Cannot add item to boiler. It may be full or not suitable for any recipe.");
             return false;
         }
 

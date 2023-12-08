@@ -6,8 +6,6 @@ namespace DistilledGames
     {
         [Header("Item Details")]
         [Space(10)]
-        [SerializeField] private int ID;
-        [Space(10)]
         [SerializeField] private string itemName;
         [Space(10)]
         [SerializeField] private int sellValue;
@@ -15,6 +13,7 @@ namespace DistilledGames
         [SerializeField] private int buyValue;
 
         private Collider2D interactionCollider;
+        private int ID;
 
         public int ItemID => ID;
         public string ItemName => itemName;
@@ -29,6 +28,11 @@ namespace DistilledGames
             GameManager.Instance.RegisterItem(this);
             rend = GetComponent<SpriteRenderer>();
             interactionCollider = transform.GetChild(0).GetComponent<Collider2D>();
+        }
+
+        public void SetUpItem(int _id)
+        {
+            ID = _id;
         }
 
         public bool TryToInsertItem(Item item)
