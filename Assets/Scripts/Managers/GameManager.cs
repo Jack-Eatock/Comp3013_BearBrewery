@@ -147,6 +147,7 @@ namespace DistilledGames
 
         public void EarnedCash(double _cash)
         {
+            AudioManager.instance.SFX_PlayClip("MadeCash", 1f);
             cash += _cash;
             UserInterface.Instance.UpdateRevText(cash.ToString());
         }

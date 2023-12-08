@@ -64,7 +64,11 @@ namespace DistilledGames.States
             Building building = hit.collider.transform.root.GetComponentInChildren<Building>();
 
             if (building != null)
+            {
                 BuildingManager.instance.DeleteObject(building);
+                AudioManager.instance.SFX_PlayClip("Destroy", 1f);
+            }
+               
 
             return StateDefinitions.ChangeInState.NoChange;
         }

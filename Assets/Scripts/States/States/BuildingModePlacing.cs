@@ -82,14 +82,15 @@ namespace DistilledGames.States
             if (!EventSystem.current.IsPointerOverGameObject() && BuildingManager.instance.PlaceObject(new Vector2Int(currentSelectedCoords.x, currentSelectedCoords.y), buildingPlacing))
             {
                 Debug.Log("placed");
-
+                AudioManager.instance.SFX_PlayClip("Placed", 1f);
                 // Placing multiple?
                 SpawnBuilding();
                 return StateDefinitions.ChangeInState.NoChange;
             }
-            else
+            else if (!EventSystem.current.IsPointerOverGameObject())
             {
                 Debug.Log("Cant place here");
+                AudioManager.instance.SFX_PlayClip("CantPlace", 1f);
             }
           
 
