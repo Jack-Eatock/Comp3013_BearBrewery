@@ -73,6 +73,11 @@ namespace DistilledGames
             CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
         }
 
+        private void Start()
+        {
+            AudioManager.instance.Music_PlayTrack("Music");
+        }
+
         private void Update()
         {
             _activeState.StateUpdate();
