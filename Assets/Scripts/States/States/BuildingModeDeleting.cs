@@ -65,6 +65,8 @@ namespace DistilledGames.States
 
             if (building != null)
             {
+                GameManager.Instance.EarnedCash(building.data.Cost);
+                BuildingMenu.instance.RefreshCosts();
                 BuildingManager.instance.DeleteObject(building);
                 AudioManager.instance.SFX_PlayClip("Destroy", 1f);
             }
