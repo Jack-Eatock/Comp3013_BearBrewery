@@ -6,6 +6,8 @@ namespace DistilledGames
     {
         [Header("Item Details")]
         [Space(10)]
+        [SerializeField] private int ID;
+        [Space(10)]
         [SerializeField] private string itemName;
         [Space(10)]
         [SerializeField] private int sellValue;
@@ -13,7 +15,7 @@ namespace DistilledGames
         [SerializeField] private int buyValue;
 
         private Collider2D interactionCollider;
-        private int ID;
+
 
         public int ItemID => ID;
         public string ItemName => itemName;

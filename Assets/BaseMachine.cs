@@ -14,25 +14,27 @@ namespace DistilledGames
         [SerializeField] private float processingTime; // in seconds
         [SerializeField] private int maxOutputItems = 3;
 
-        private Dictionary<int, Recipe> recipeDictionary;
+        private Dictionary<int, List<Recipe>> recipeDictionary = new Dictionary<int, List<Recipe>>(); // Input item. What recipes can it make? 
         private Dictionary<int, int> storedItems = new Dictionary<int, int>(); // Id , number of
         private Dictionary<int, int> outputItems = new Dictionary<int, int>();
         private bool isProcessing = false;
-        private Recipe currentRecipe;
+        private List<Recipe> currentRecipes = new List<Recipe>();
 
         [SerializeField]
-        private Vector2Int conveyerIn, conveyerOut;
+        private List<Vector2Int> conveyerIn, conveyerOut;
 
         protected virtual void Start()
         {
-            recipeDictionary = new Dictionary<int, Recipe>();
             foreach (Recipe recipeSO in recipes)
             {
-                int inputID = recipeSO.InputItems[0].itemPrefab.ItemID; // Assumes the boiler only uses the first input item for processing
-                if (!recipeDictionary.ContainsKey(inputID))
-                    recipeDictionary.Add(inputID, recipeSO);
-                else
-                    Debug.LogWarning("Duplicate recipe detected for item ID: " + inputID);
+                foreach (var inputItem in recipeSO.InputItems)
+                {
+                    int inputID = inputItem.itemPrefab.ItemID;
+                    if (!recipeDictionary.ContainsKey(inputID))
+                        recipeDictionary[inputID] = new List<Recipe>();
+
+                    recipeDictionary[inputItem.itemPrefab.ItemID].Add(recipeSO);
+                }
             }
 
             UpdateSprite(); // Set the initial sprite
@@ -57,17 +59,9 @@ namespace DistilledGames
 
         protected bool CanWeProcess()
         {
-            if (currentRecipe == null)
+            Recipe currentRecipe;
+            if (!GetCurrentRecipe(out currentRecipe))
                 return false;
-
-            // Check the current recipe
-            foreach (ItemCountPair pair in currentRecipe.InputItems)
-            {
-                // Do we have this item? 
-                int numOfItem = NumOfItem(ref storedItems, pair.itemPrefab.ItemID);
-                if (pair.itemCount > numOfItem)
-                    return false;
-            }
 
             // Make sure we are not full of output items#]
             if (NumOfItemsTotal(ref outputItems) + 1 > maxOutputItems)
@@ -82,7 +76,8 @@ namespace DistilledGames
             UpdateSprite();
             yield return new WaitForSeconds(processingTime);
 
-            if (currentRecipe != null)
+            Recipe currentRecipe;
+            if (GetCurrentRecipe(out currentRecipe))
             {
                 // Consume the correct number of input items
                 foreach (ItemCountPair pair in currentRecipe.InputItems)
@@ -100,8 +95,36 @@ namespace DistilledGames
 
                 Debug.Log($"Processed items)");
             }
-
             isProcessing = false;
+        }
+
+        private bool GetCurrentRecipe(out Recipe currentRecipe)
+        {
+            currentRecipe = null;
+            bool canProcessRecipee = false;
+            foreach (Recipe recipe in currentRecipes)
+            {
+                canProcessRecipee = true;
+                // Check the current recipe
+                foreach (ItemCountPair pair in recipe.InputItems)
+                {
+                    // Do we have this item? 
+                    int numOfItem = NumOfItem(ref storedItems, pair.itemPrefab.ItemID);
+                    if (pair.itemCount > numOfItem)
+                    {
+                        canProcessRecipee = false;
+                        break;
+                    }
+                }
+
+                if (canProcessRecipee)
+                {
+                    currentRecipe = recipe;
+                    break;
+                }
+            }
+
+            return canProcessRecipee;
         }
 
         public virtual bool TryToInsertItem(Item item)
@@ -109,8 +132,8 @@ namespace DistilledGames
             // If the machine is empty. We set a new recipee.
             if (storedItems.Count == 0)
             {
-                if (recipeDictionary.TryGetValue(item.ItemID, out Recipe recipe))
-                    currentRecipe = recipe;
+                if (recipeDictionary.TryGetValue(item.ItemID, out List<Recipe> recipe))
+                    currentRecipes = recipe;
             }
 
             // We want to only take in items for this recipee.
@@ -141,17 +164,28 @@ namespace DistilledGames
         {
             AddItem(ref storedItems, item.ItemID);
             Destroy(item.gameObject);
+            UpdateSprite(); // Update the sprite immediately after insertion
         }
 
         protected int MaxNumberOfItemAllowed(int id)
         {
-            // find its pair in the recipee
-            for (int i = 0; i < currentRecipe.InputItems.Count; i++)
+            // Go through their available recipees and get the highest value for them.
+            int highestNumber = 0;
+            foreach (Recipe recipe in recipes)
             {
-                if (currentRecipe.InputItems[i].itemPrefab.ItemID == id)
-                    return currentRecipe.InputItems[i].itemCount * maxRecipeItemsMulitplier;
+                // find its pair in the recipee
+                for (int i = 0; i < recipe.InputItems.Count; i++)
+                {
+                    if (recipe.InputItems[i].itemPrefab.ItemID == id)
+                    {
+                        if (recipe.InputItems[i].itemCount >= highestNumber)
+                            highestNumber = recipe.InputItems[i].itemCount;
+                        break;
+                    }
+                }
             }
-            return 0;
+
+            return highestNumber * maxRecipeItemsMulitplier;
         }
 
         protected int NumOfItem(ref Dictionary<int, int> _items, int id)
@@ -172,10 +206,13 @@ namespace DistilledGames
 
         protected bool IsItemInRecipee(int id)
         {
-            for (int i = 0; i < currentRecipe.InputItems.Count; i++)
+            foreach (Recipe recipe in recipes)
             {
-                if (currentRecipe.InputItems[i].itemPrefab.ItemID == id)
-                    return true;
+                for (int i = 0; i < recipe.InputItems.Count; i++)
+                {
+                    if (recipe.InputItems[i].itemPrefab.ItemID == id)
+                        return true;
+                }
             }
             return false;
         }
@@ -246,6 +283,7 @@ namespace DistilledGames
             }
             else
                 return false;
+        
         }
 
         public virtual bool ConveyerTryToRetrieveItem(Vector2Int RetrieveFromCoords, out Item item)
@@ -253,9 +291,13 @@ namespace DistilledGames
             item = null;
 
             // Are the requested coords lining up with the output coords.
-            Vector2Int outputCoords = gridCoords + conveyerOut;
-            if (RetrieveFromCoords != outputCoords)
-                return false;
+            Vector2Int gridCoordsAdjusted = Vector2Int.zero;
+            for (int i = 0; i < conveyerOut.Count; i++)
+            {
+                gridCoordsAdjusted = GridCoords + conveyerOut[i];
+                if (RetrieveFromCoords != gridCoordsAdjusted)
+                    return false;
+            }
 
             if (TryToRetreiveItem(out item))
             {
@@ -289,10 +331,14 @@ namespace DistilledGames
         public virtual bool CanConnectIn(Vector2Int coords)
         {
             // Do the coords allign with the input coords.
-            Vector2Int inputCoords = gridCoords + conveyerIn;
-            if (inputCoords != coords)
-                return false;
-            return true;
+            Vector2Int gridCoordsAdjusted = Vector2Int.zero;
+            for (int i = 0; i < conveyerIn.Count; i++)
+            {
+                gridCoordsAdjusted = GridCoords + conveyerIn[i];
+                if (coords == gridCoordsAdjusted)
+                    return true;
+            }
+            return false;
         }
 
         #endregion
