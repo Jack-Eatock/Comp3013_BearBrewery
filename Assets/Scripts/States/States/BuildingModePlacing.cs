@@ -57,6 +57,8 @@ namespace DistilledGames.States
 
             Vector3Int closestCoord = BuildingManager.instance.ClosestGridCoord();
 
+            Helper.UpdateSortingOrder(buildingPlacing.Rend, buildingPlacing.transform);
+
             // What coords would be required?
             requiredCoords.Clear();
             for (int width = 0; width < buildingPlacing.data.Width; width++)
@@ -92,6 +94,7 @@ namespace DistilledGames.States
             else if (!EventSystem.current.IsPointerOverGameObject())
             {
                 Debug.Log("Cant place here");
+                buildingPlacing.FlashColour(Color.red, .2f);
                 AudioManager.instance.SFX_PlayClip("CantPlace", 1f);
             }
           

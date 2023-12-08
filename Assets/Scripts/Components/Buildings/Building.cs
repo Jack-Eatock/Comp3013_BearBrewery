@@ -14,6 +14,7 @@ namespace DistilledGames
         public BuildingData data;
         private SpriteRenderer renderer;
         protected Vector2Int gridCoords;
+        private Color colourStart;
 
         [SerializeField] private bool isRotatable = false;
         private Direction currentRotation = Direction.Up;
@@ -21,18 +22,25 @@ namespace DistilledGames
 
         [SerializeField]
         private Transform arrowsHolder;
-
+        private IEnumerator flashingColour;
         public SpriteRenderer Rend => renderer;
         public Vector2Int GridCoords => gridCoords; 
 
         protected virtual void Awake()
         {
             renderer = GetComponent<SpriteRenderer>();
+            colourStart = renderer.color;
         }
 
         public void OnPlaced(Vector2Int _gridCoords)
         {
             gridCoords = _gridCoords;
+        }
+
+        private void OnDisable()
+        {
+            if (flashingColour != null)
+                StopCoroutine(flashingColour);
         }
 
         public virtual bool Rotate(int dir)
@@ -94,6 +102,22 @@ namespace DistilledGames
                     return new Vector2Int(-1, 0);
             }
             return Vector2Int.zero;
+        }
+
+        public void FlashColour(Color colour, float time)
+        {
+            if (flashingColour != null)
+                StopCoroutine(flashingColour);
+
+            flashingColour = FlashColourEffect(colour, time);
+            StartCoroutine(flashingColour);
+        }
+
+        private IEnumerator FlashColourEffect(Color colour, float time)
+        {
+            renderer.color = colour;
+            yield return new WaitForSecondsRealtime(time);
+            renderer.color = colourStart;
         }
 
         public virtual bool SetRotation(Direction index)
