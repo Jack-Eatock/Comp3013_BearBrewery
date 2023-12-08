@@ -1,4 +1,5 @@
 using DistilledGames;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BearController : MonoBehaviour
@@ -13,6 +14,10 @@ public class BearController : MonoBehaviour
     [SerializeField] private Transform interactionZoneTransform;
     [SerializeField] private Animator bearAnimator;  // Reference to the Animator component.
     [SerializeField] private float walkAnimSpeed = 1.0f;  // Base speed for walking animation.
+
+    [SerializeField] private List<AudioClip> footStepAudioClips = new List<AudioClip>();
+    [SerializeField] private float timeBetweenStep = .4f, footStepVolume = .5f;
+    private float timeOfLastStep;
 
     private Rigidbody2D rig;
     private SpriteRenderer rend;
@@ -70,6 +75,12 @@ public class BearController : MonoBehaviour
         if (currentMoveDirection != Vector3.zero)
         {
             bearAnimator.SetBool("isWalking", true);
+            if (Time.time - timeOfLastStep  > timeBetweenStep)
+            {
+                AudioManager.instance.SFX_PlayClip(footStepAudioClips[Random.Range(0, footStepAudioClips.Count)], footStepVolume);
+                timeOfLastStep = Time.time;
+            }
+
         }
         else
         {
