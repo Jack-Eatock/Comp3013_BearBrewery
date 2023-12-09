@@ -11,6 +11,7 @@ public class MainMenu : BaseMenu
     private TextMeshProUGUI firstText, secondText, thirdText;
 
     [SerializeField] private GameObject mainMenuBG;
+    [SerializeField] private SettingsMenu menuSettings;
 
     private void Awake()
     {
@@ -94,6 +95,7 @@ public class MainMenu : BaseMenu
     private void SettingsClicked()
     {
         Debug.Log("Settings");
+        menuSettings.gameObject.SetActive(true);
     }
 
     private void ResumeClicked()

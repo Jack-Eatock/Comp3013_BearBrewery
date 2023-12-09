@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.Rendering;
 
 namespace DistilledGames
 {
@@ -25,7 +26,7 @@ namespace DistilledGames
         private List<AudioSource> sfxSources = new List<AudioSource>();
 
         private const int MAXVOLUME = -5, MINVOLUME = -50; // Decibals 
-        private const string MUSICVOLUME = "MusicVolume", SFXVOLUME = "SFXVolume";
+        private const string MUSICVOLUME = "MusicVolume", SFXVOLUME = "SFXVolume", MASTERVOLUME = "MasterVolume";
 
         [SerializeField]
         private AudioDefinitionsSO sfxClipDefinitions;
@@ -54,6 +55,19 @@ namespace DistilledGames
             CreateSources();
         }
 
+
+        public float Master_GetMixerVolume()
+        {
+            float result = 0;
+            audioMixer.GetFloat(MASTERVOLUME, out result);
+            return ConvertDecibalsToFraction(result);
+        }
+        public void Master_SetMixerVolume(float volume)
+        {
+            volume = ConvertFractionToDecibals(volume);
+            audioMixer.SetFloat(MASTERVOLUME, volume);
+        }
+
         #region SFX
 
         private void CreateSources()
@@ -64,6 +78,13 @@ namespace DistilledGames
                 source.outputAudioMixerGroup = audioMixerGroup_SFX;
                 sfxSources.Add(source);
             }
+        }
+
+        public float SFX_GetMixerVolume()
+        {
+            float result = 0;
+            audioMixer.GetFloat(SFXVOLUME, out result);
+            return ConvertDecibalsToFraction(result);
         }
 
         /// <summary>
@@ -140,6 +161,13 @@ namespace DistilledGames
             audioMixer.SetFloat(MUSICVOLUME, volume);
         }
 
+        public float Music_GetMixerVolume()
+        {
+            float result = 0;
+            audioMixer.GetFloat(MUSICVOLUME, out result);
+            return ConvertDecibalsToFraction(result);
+        }
+
 
         #endregion
 
@@ -152,6 +180,11 @@ namespace DistilledGames
         public float ConvertFractionToDecibals(float fraction)
         {
             return Mathf.Lerp(MINVOLUME, MAXVOLUME, fraction);
+        }
+
+        public float ConvertDecibalsToFraction(float dec)
+        {
+            return Mathf.Clamp((dec - MINVOLUME) / (MAXVOLUME - MINVOLUME),0,1);
         }
 
         private bool TryGetClipUsingId(AudioDefinitionsSO defToCheck, string id, out AudioClip outClip)
