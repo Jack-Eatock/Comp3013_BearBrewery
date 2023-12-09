@@ -86,6 +86,9 @@ namespace DistilledGames
             MenuManager.Instance.SetGUIState(true);
             cash = startingCash;
             UserInterface.Instance.UpdateRevText(cash.ToString());
+
+            nextState = StateDefinitions.GameStates.Normal.ToString();
+            CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
         }
 
 

@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class MainMenu : BaseMenu
 {
+    public static MainMenu instance;
+
     [SerializeField] private Button firstButton, secondButton, thirdButton;
     private TextMeshProUGUI firstText, secondText, thirdText;
 
@@ -12,6 +14,11 @@ public class MainMenu : BaseMenu
 
     private void Awake()
     {
+        if (instance == null)
+            instance = this;
+        else
+            Destroy(gameObject);
+
         firstText = firstButton.GetComponentInChildren<TextMeshProUGUI>();
         secondText = secondButton.GetComponentInChildren<TextMeshProUGUI>();
         thirdText = thirdButton.GetComponentInChildren<TextMeshProUGUI>();
@@ -25,6 +32,8 @@ public class MainMenu : BaseMenu
 
     public override void ShowMenu()
     {
+        Time.timeScale = 0f;
+        GameManager.Instance.SwitchState(StateDefinitions.GameStates.InMenu.ToString());
         base.ShowMenu();
         MenuManager.Instance.SetGUIState(false);
     }
@@ -57,6 +66,12 @@ public class MainMenu : BaseMenu
         }
     }
 
+    public override void HideMenu()
+    {
+        base.HideMenu();
+        Time.timeScale = 1f;
+    }
+
     private void StartGame()
     {
         Debug.Log("Start");
@@ -73,6 +88,7 @@ public class MainMenu : BaseMenu
     private void ReturnToMainMenu()
     {
         Debug.Log("Return To MainMenu");
+        SetupMenu(false);
     }
 
     private void SettingsClicked()
@@ -83,5 +99,8 @@ public class MainMenu : BaseMenu
     private void ResumeClicked()
     {
         Debug.Log("Resumed");
+        MenuManager.Instance.SetGUIState(false);
+        HideMenu();
+        GameManager.Instance.SwitchState(StateDefinitions.GameStates.Normal.ToString());
     }
 }

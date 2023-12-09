@@ -49,5 +49,10 @@ namespace DistilledGames.States
         {
             return StateDefinitions.ChangeInState.NoChange;
         }
+
+        public virtual StateDefinitions.ChangeInState Escape()
+        {
+            return StateDefinitions.ChangeInState.NoChange;
+        }
     }
 }

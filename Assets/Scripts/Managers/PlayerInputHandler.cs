@@ -20,6 +20,7 @@ namespace DistilledGames
         private InputAction secondaryCursorInteraction;
         private InputAction rotate;
         private InputAction rotateScroll;
+        private InputAction escape;
 
         private Vector2 primaryCursorPosition;
         private Vector2 movementInput;
@@ -63,6 +64,7 @@ namespace DistilledGames
             secondaryCursorInteraction = playerInput.actions["SecondaryCursorClick"];
             rotate = playerInput.actions["Rotate"];
             rotateScroll = playerInput.actions["RotateScroll"];
+            escape = playerInput.actions["Escape"];
         }
 
         private void Update()
@@ -99,6 +101,7 @@ namespace DistilledGames
             secondaryCursorInteraction.performed += InputSecondaryCursorInteraction;
             rotate.performed += InputRotate;
             rotateScroll.performed += InputRotateScroll;
+            escape.performed += InputEscape;
         }
 
         private void OnDisable()
@@ -113,6 +116,7 @@ namespace DistilledGames
             enterBuildMode.performed -= InputEnterBuildMode;
             secondaryCursorInteraction.performed -= InputSecondaryCursorInteraction;
             rotate.performed -= InputRotate;
+            escape.performed -= InputEscape;
         }
 
         private void InputMovement(InputAction.CallbackContext ctx)
@@ -124,6 +128,11 @@ namespace DistilledGames
         private void InputPrimaryCursorPos(InputAction.CallbackContext ctx)
         {
             primaryCursorPosition = ctx.ReadValue<Vector2>();
+        }
+
+        private void InputEscape(InputAction.CallbackContext ctx)
+        {
+            gamemanager.CheckIfStateShouldChange(gamemanager.ActiveState.Escape());
         }
 
         private void InputPrimaryCursorInteraction(InputAction.CallbackContext ctx)
