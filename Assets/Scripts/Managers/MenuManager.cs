@@ -9,13 +9,17 @@ namespace DistilledGames
     {
         public static MenuManager Instance;
 
-        public enum Menus { None, BuildingMenu }
+        public enum Menus { None, BuildingMenu, MainMenu, Settings }
 
         private Menus activeMenu = Menus.None;
 
-        [SerializeField]
-        private BuildingMenu buildingMenu;
 
+        [SerializeField] private BuildingMenu buildingMenu;
+        [SerializeField] private MainMenu mainMenu;
+
+        // GUI
+
+        [SerializeField] private GameObject gui;
 
         private void Awake()
         {
@@ -23,6 +27,11 @@ namespace DistilledGames
                 Instance = this;
             else
                 Destroy(gameObject);
+        }
+
+        public void SetGUIState(bool active)
+        {
+            gui.SetActive(active);
         }
 
         public void ShowMenu(Menus menuToShow)
@@ -38,6 +47,10 @@ namespace DistilledGames
                 case Menus.BuildingMenu:
                     buildingMenu.ShowMenu();
                     break;
+
+                case Menus.MainMenu: 
+                    mainMenu.ShowMenu(); 
+                    break;
             }
         }
 
@@ -47,6 +60,10 @@ namespace DistilledGames
             {
                 case Menus.BuildingMenu:
                     buildingMenu.HideMenu();
+                    break;
+
+                case Menus.MainMenu: 
+                    mainMenu.HideMenu();
                     break;
             }
         }
