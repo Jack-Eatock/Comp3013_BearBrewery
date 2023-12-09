@@ -23,7 +23,7 @@ namespace DistilledGames.States
             BuildingManager.instance.ShowArrows(true);
             gameManager.SetBearActive(false);
             gameManager.SetItemsActive(false);
-            MenuManager.Instance.ShowMenu(MenuManager.Menus.BuildingMenu);
+            BuildingMenu.instance.ShowMenu();
         }
 
         public override void StateExit()
@@ -40,7 +40,7 @@ namespace DistilledGames.States
             BuildingManager.instance.ShowArrows(false);
             gameManager.SetBearActive(true);
             gameManager.SetItemsActive(true);
-            MenuManager.Instance.HideMenu(MenuManager.Menus.BuildingMenu);
+            MenuManager.Instance.HideCurrentMenu(MenuManager.Menus.BuildingMenu);
         }
 
         public override void StateUpdate()
