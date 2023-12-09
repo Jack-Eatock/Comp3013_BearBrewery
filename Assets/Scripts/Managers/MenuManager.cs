@@ -34,28 +34,20 @@ namespace DistilledGames
             gui.SetActive(active);
         }
 
-        public void ShowMenu(Menus menuToShow)
+        public void SetCurrentMenu(Menus menuToShow)
         {
             if (activeMenu == menuToShow)
                 return;
 
             if (activeMenu != Menus.None)
-                HideMenu(activeMenu);
+                HideCurrentMenu(activeMenu);
 
-            switch (menuToShow)
-            {
-                case Menus.BuildingMenu:
-                    buildingMenu.ShowMenu();
-                    break;
-
-                case Menus.MainMenu: 
-                    mainMenu.ShowMenu(); 
-                    break;
-            }
+            activeMenu = menuToShow;
         }
 
-        public void HideMenu(Menus menuToHide)
+        public void HideCurrentMenu(Menus menuToHide)
         {
+            activeMenu = Menus.None;
             switch (menuToHide)
             {
                 case Menus.BuildingMenu:

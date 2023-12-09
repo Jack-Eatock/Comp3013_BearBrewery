@@ -9,7 +9,7 @@ namespace DistilledGames
 {
     public enum BuildMode { Select, Delete, Placing }
 
-    public class BuildingMenu : MonoBehaviour
+    public class BuildingMenu : BaseMenu
     {
         public static BuildingMenu instance;
 
@@ -20,7 +20,7 @@ namespace DistilledGames
 
         private CanvasGroup group;
         [SerializeField] private float blendTime = 1f;
-        [SerializeField] private GameObject content, placingBuildingPanel, buildingOptionsPanel;
+        [SerializeField] private GameObject placingBuildingPanel, buildingOptionsPanel;
         [SerializeField] private BuildingOption optionTemplate;
         [SerializeField] private Transform optionHolder;
         [SerializeField] private CanvasGroup oldMessage;
@@ -117,8 +117,10 @@ namespace DistilledGames
             GameManager.Instance.CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
+            base.ShowMenu();
+
             if (showingHidingMenu != null)
                 StopCoroutine(showingHidingMenu);
 
@@ -131,13 +133,11 @@ namespace DistilledGames
 
         }
 
-        public void HideMenu()
+        public override void HideMenu()
         {
+
+            base.HideMenu();
             toggleGroup.SetAllTogglesOff(false);
-            //foreach (BuildingOption toggle in dynamicToggles)
-            //{
-            //    toggle.TurnOffWithoutNotif();
-            //}
            
 
             if (showingHidingMenu != null)

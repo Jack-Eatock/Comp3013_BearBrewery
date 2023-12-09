@@ -78,10 +78,16 @@ namespace DistilledGames
 
         private void Start()
         {
-            cash = startingCash;
-            UserInterface.Instance.UpdateRevText(cash.ToString());
             AudioManager.instance.Music_PlayTrack("Music");
         }
+
+        public void StartGame()
+        {
+            MenuManager.Instance.SetGUIState(true);
+            cash = startingCash;
+            UserInterface.Instance.UpdateRevText(cash.ToString());
+        }
+
 
         private void Update()
         {

@@ -1,13 +1,14 @@
+using DistilledGames;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MainMenu : MonoBehaviour
+public class MainMenu : BaseMenu
 {
-    [SerializeField] GameObject content;
-
     [SerializeField] private Button firstButton, secondButton, thirdButton;
     private TextMeshProUGUI firstText, secondText, thirdText;
+
+    [SerializeField] private GameObject mainMenuBG;
 
     private void Awake()
     {
@@ -19,9 +20,16 @@ public class MainMenu : MonoBehaviour
     private void Start()
     {
         ShowMenu();
+        SetupMenu(false);
     }
 
-    public void ShowMenu(bool playing = false)
+    public override void ShowMenu()
+    {
+        base.ShowMenu();
+        MenuManager.Instance.SetGUIState(false);
+    }
+
+    public void SetupMenu(bool playing = false)
     {
         firstButton.onClick.RemoveAllListeners();
         secondButton.onClick.RemoveAllListeners();
@@ -29,6 +37,7 @@ public class MainMenu : MonoBehaviour
 
         if (playing)
         {
+            mainMenuBG.SetActive(false);
             firstText.text = "Resume";
             secondText.text = "Settings";
             thirdText.text = "Main Menu";
@@ -38,6 +47,7 @@ public class MainMenu : MonoBehaviour
         }
         else
         {
+            mainMenuBG.SetActive(true);
             firstText.text = "Start";
             secondText.text = "Settings";
             thirdText.text = "Exit";
@@ -45,18 +55,19 @@ public class MainMenu : MonoBehaviour
             secondButton.onClick.AddListener(() => SettingsClicked());
             thirdButton.onClick.AddListener(() => Quit());
         }
-
-        content.SetActive(true);
     }
 
     private void StartGame()
     {
         Debug.Log("Start");
+        GameManager.Instance.StartGame();
+        HideMenu();
     }
 
     private void Quit()
     {
         Debug.Log("Quit");
+        Application.Quit();
     }
 
     private void ReturnToMainMenu()
@@ -72,10 +83,5 @@ public class MainMenu : MonoBehaviour
     private void ResumeClicked()
     {
         Debug.Log("Resumed");
-    }
-
-    public  void HideMenu() 
-    {
-        content.SetActive(false);
     }
 }
