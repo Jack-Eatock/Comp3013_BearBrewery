@@ -101,7 +101,7 @@ public class MainMenu : BaseMenu
     private void ResumeClicked()
     {
         Debug.Log("Resumed");
-        MenuManager.Instance.SetGUIState(false);
+        MenuManager.Instance.SetGUIState(true);
         HideMenu();
         GameManager.Instance.SwitchState(StateDefinitions.GameStates.Normal.ToString());
     }
