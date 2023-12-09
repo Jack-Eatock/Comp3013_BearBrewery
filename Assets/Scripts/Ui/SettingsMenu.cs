@@ -33,6 +33,7 @@ public class SettingsMenu : MonoBehaviour
 
     public void BackButtonPressed()
     {
+        AudioManager.instance.SFX_PlayClip("Click", 1f);
         gameObject.SetActive(false);
     }
 }

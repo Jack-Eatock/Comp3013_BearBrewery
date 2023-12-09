@@ -75,6 +75,7 @@ public class MainMenu : BaseMenu
 
     private void StartGame()
     {
+        AudioManager.instance.SFX_PlayClip("Click", 1f);
         Debug.Log("Start");
         GameManager.Instance.StartGame();
         HideMenu();
@@ -82,24 +83,28 @@ public class MainMenu : BaseMenu
 
     private void Quit()
     {
+        AudioManager.instance.SFX_PlayClip("Click", 1f);
         Debug.Log("Quit");
         Application.Quit();
     }
 
     private void ReturnToMainMenu()
     {
+        AudioManager.instance.SFX_PlayClip("Click", 1f);
         Debug.Log("Return To MainMenu");
         SetupMenu(false);
     }
 
     private void SettingsClicked()
     {
+        AudioManager.instance.SFX_PlayClip("Click", 1f);
         Debug.Log("Settings");
         menuSettings.gameObject.SetActive(true);
     }
 
     private void ResumeClicked()
     {
+        AudioManager.instance.SFX_PlayClip("Click", 1f);
         Debug.Log("Resumed");
         MenuManager.Instance.SetGUIState(true);
         HideMenu();

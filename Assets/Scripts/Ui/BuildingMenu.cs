@@ -94,6 +94,7 @@ namespace DistilledGames
         {
             if (!val)
                 return;
+            AudioManager.instance.SFX_PlayClip("Click", 1f);
             buildingMode = BuildMode.Delete;
             GameManager.Instance.NextState = StateDefinitions.GameStates.BuildingModeDeleting.ToString();
             GameManager.Instance.CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
@@ -103,6 +104,7 @@ namespace DistilledGames
         {
             if (!val)
                 return;
+            AudioManager.instance.SFX_PlayClip("Click", 1f);
             buildingMode = BuildMode.Select;
             GameManager.Instance.NextState = StateDefinitions.GameStates.BuildingMode.ToString();
             GameManager.Instance.CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
@@ -112,6 +114,7 @@ namespace DistilledGames
         {
             if (!val)
                 return;
+            AudioManager.instance.SFX_PlayClip("Click", 1f);
             buildingMode = BuildMode.Placing;
             GameManager.Instance.NextState = StateDefinitions.GameStates.BuildingModePlacing.ToString();
             GameManager.Instance.CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
@@ -135,7 +138,6 @@ namespace DistilledGames
 
         public override void HideMenu()
         {
-
             base.HideMenu();
             toggleGroup.SetAllTogglesOff(false);
            
