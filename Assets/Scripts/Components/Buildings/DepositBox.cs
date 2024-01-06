@@ -1,101 +1,107 @@
-using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace DistilledGames
 {
-    public class DepositBox : Building, IInteractable,  IConveyerInteractable
-    {
-        [SerializeField]
-        private List<Vector2Int> conveyerIn = new List<Vector2Int>();
+	public class DepositBox : Building, IInteractable, IConveyerInteractable
+	{
+		[SerializeField]
+		private List<Vector2Int> conveyerIn = new();
 
-        #region Player Interacting
+		#region Player Interacting
 
-        public bool TryToInsertItem(Item item, bool conveyer = false)
-        {
-            if (item != null)
-            {
-                int itemValue = item.SellValue;
+		public bool TryToInsertItem(Item item, bool conveyer = false)
+		{
+			if (item != null)
+			{
+				int itemValue = item.SellValue;
 
-                GameManager.Instance.EarnedCash(itemValue);
-                Debug.Log("Item deposited with value: " + itemValue);
-                Destroy(item.gameObject);
+				GameManager.Instance.EarnedCash(itemValue);
+				Debug.Log("Item deposited with value: " + itemValue);
+				Destroy(item.gameObject);
 
-                return true;
-            }
-            return false;
-        }
+				return true;
+			}
+			return false;
+		}
 
+		public bool TryToRetreiveItem(out Item item)
+		{
+			item = null;
+			return false;
+		}
 
-        public bool TryToRetreiveItem(out Item item)
-        {
-            item = null;
-            return false;
-        }
+		#endregion
 
-        #endregion
+		public bool CanAnItemBeInserted(Item item, Vector2Int insertFromCoords)
+		{
+			return true;
+		}
 
-        public bool CanAnItemBeInserted(Item item, Vector2Int insertFromCoords)
-        {
-            return true;
-        }
+		public bool CanConnectIn(Vector2Int coords)
+		{
+			_ = Vector2Int.zero;
+			for (int i = 0; i < conveyerIn.Count; i++)
+			{
+				Vector2Int gridCoordsAdjusted = GridCoords + conveyerIn[i];
+				if (coords == gridCoordsAdjusted)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
 
-        public bool CanConnectIn(Vector2Int coords)
-        {
-            Vector2Int gridCoordsAdjusted = Vector2Int.zero;
-            for (int i = 0; i < conveyerIn.Count; i++)
-            {
-                gridCoordsAdjusted = GridCoords + conveyerIn[i];
-                if (coords == gridCoordsAdjusted)
-                    return true;
-            }
-            return false;
-        }
+		public bool ConveyerTryToInsertItem(Item item, Vector2Int insertFromCoords)
+		{
+			if (item != null)
+			{
+				_ = StartCoroutine(MoveItemFromConveyerIntoMachine(item, insertFromCoords));
+				return true;
+			}
+			return false;
+		}
 
-        public bool ConveyerTryToInsertItem(Item item, Vector2Int insertFromCoords)
-        {
-            if (item != null)
-            {
-                StartCoroutine(MoveItemFromConveyerIntoMachine(item, insertFromCoords));
-                return true;
-            }
-            return false;
-        }
+		private IEnumerator MoveItemFromConveyerIntoMachine(Item item, Vector2Int inputCoords)
+		{
+			Vector3 startingPos = item.transform.position;
+			float timeStarted = Time.time;
+			float timeToMove = GameManager.Instance.ConveyerBeltsTimeToMove;
+			Vector3 targetPos = BuildingManager.Instance.GetWorldPosOfGridCoord(new Vector3Int(inputCoords.x, inputCoords.y, 2));
+			targetPos.x += .5f;
+			targetPos.y += .5f;
 
+			while (Time.time - timeStarted < timeToMove)
+			{
+				float percentageComplete = (Time.time - timeStarted) / timeToMove;
+				if (item != null)
+				{
+					item.transform.position = Vector3.Lerp(startingPos, targetPos, percentageComplete);
+				}
+				else
+				{
+					yield break;
+				}
 
-        private IEnumerator MoveItemFromConveyerIntoMachine(Item item, Vector2Int inputCoords)
-        {
-            Vector3 startingPos = item.transform.position;
-            float timeStarted = Time.time;
-            float timeToMove = GameManager.Instance.ConveyerBeltsTimeToMove;
-            Vector3 targetPos = BuildingManager.instance.GetWorldPosOfGridCoord(new Vector3Int(inputCoords.x, inputCoords.y, 2));
-            targetPos.x += .5f;
-            targetPos.y += .5f;
+				yield return new WaitForEndOfFrame();
+			}
+			if (item != null)
+			{
+				item.transform.position = targetPos;
+			}
 
-            while (Time.time - timeStarted < timeToMove)
-            {
-                float percentageComplete = (Time.time - timeStarted) / timeToMove;
-                if (item != null)
-                    item.transform.position = Vector3.Lerp(startingPos, targetPos, percentageComplete);
-                else
-                    yield break;
-                yield return new WaitForEndOfFrame();
-            }
-            if (item != null)
-                item.transform.position = targetPos;
+			int itemValue = item.SellValue;
+			GameManager.Instance.EarnedCash(itemValue);
+			Debug.Log("Item deposited with value: " + itemValue);
+			Destroy(item.gameObject);
+		}
 
-            int itemValue = item.SellValue;
-            GameManager.Instance.EarnedCash(itemValue);
-            Debug.Log("Item deposited with value: " + itemValue);
-            Destroy(item.gameObject);
-        }
-
-
-        public bool ConveyerTryToRetrieveItem(Vector2Int RetrieveFromCoords, out Item item)
-        {
-            item = null;
-            return false;
-        }
-    }
+		public bool ConveyerTryToRetrieveItem(Vector2Int RetrieveFromCoords, out Item item)
+		{
+			item = null;
+			return false;
+		}
+	}
 }
 

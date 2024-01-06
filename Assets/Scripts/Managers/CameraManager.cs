@@ -1,31 +1,35 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using Cinemachine;
+using UnityEngine;
 
 public class CameraManager : MonoBehaviour
 {
-    public static CameraManager instance;
-    [SerializeField]
-    private Animator animator;
+	public static CameraManager Instance;
+	[SerializeField]
+	private Animator animator;
 
-    [SerializeField]
-    private CinemachineVirtualCamera bearCam, buildingCam;
+	[SerializeField]
+	private CinemachineVirtualCamera bearCam, buildingCam;
 
-    private void Awake()
-    {
-        if (instance != null)
-            Destroy(gameObject);
+	private void Awake()
+	{
+		if (Instance != null)
+		{
+			Destroy(gameObject);
+		}
+		else
+		{
+			Instance = this;
+		}
+	}
 
-        else
-            instance = this;
-    }
+	public void SetBuildMode(bool state)
+	{
+		if (state)
+		{
+			buildingCam.transform.position = bearCam.transform.position;
+		}
 
-    public void SetBuildMode(bool state)
-    {
-        if (state)
-            buildingCam.transform.position = bearCam.transform.position;
-        animator.SetBool("BuildMode", state);
-    }
+		animator.SetBool("BuildMode", state);
+	}
 
 }

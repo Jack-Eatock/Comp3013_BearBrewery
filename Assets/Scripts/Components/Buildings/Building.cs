@@ -1,150 +1,140 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using System;
+using System.Collections;
+using UnityEngine;
 
 namespace DistilledGames
 {
-    public enum Direction { Up, Right, Down, Left }
+	public enum Direction { Up, Right, Down, Left }
 
-    [Serializable]
-    public class Building : MonoBehaviour, IPlaceableObject
-    {
-        [HideInInspector]
-        public BuildingData data;
-        private SpriteRenderer renderer;
-        protected Vector2Int gridCoords;
-        private Color colourStart;
+	[Serializable]
+	public class Building : MonoBehaviour, IPlaceableObject
+	{
+		[HideInInspector]
+		public BuildingData Data;
+		private new SpriteRenderer renderer;
+		protected Vector2Int gridCoords;
+		private Color colourStart;
 
-        [SerializeField] private bool isRotatable = false;
-        private Direction currentRotation = Direction.Up;
-        [SerializeField] private Sprite rotationUp, rotationRight, rotationDown, rotationLeft;
+		[SerializeField] private bool isRotatable = false;
+		private Direction currentRotation = Direction.Up;
+		[SerializeField] private Sprite rotationUp, rotationRight, rotationDown, rotationLeft;
 
-        [SerializeField]
-        private Transform arrowsHolder;
-        private IEnumerator flashingColour;
-        public SpriteRenderer Rend => renderer;
-        public Vector2Int GridCoords => gridCoords; 
+		[SerializeField]
+		private Transform arrowsHolder;
+		private IEnumerator flashingColour;
+		public SpriteRenderer Rend => renderer;
+		public Vector2Int GridCoords => gridCoords;
 
-        protected virtual void Awake()
-        {
-            renderer = GetComponent<SpriteRenderer>();
-            colourStart = renderer.color;
-        }
+		protected virtual void Awake()
+		{
+			renderer = GetComponent<SpriteRenderer>();
+			colourStart = renderer.color;
+		}
 
-        public void OnPlaced(Vector2Int _gridCoords)
-        {
-            gridCoords = _gridCoords;
-        }
+		public void OnPlaced(Vector2Int _gridCoords)
+		{
+			gridCoords = _gridCoords;
+		}
 
-        private void OnDisable()
-        {
-            if (flashingColour != null)
-                StopCoroutine(flashingColour);
-        }
+		private void OnDisable()
+		{
+			if (flashingColour != null)
+			{
+				StopCoroutine(flashingColour);
+			}
+		}
 
-        public virtual bool Rotate(int dir)
-        {
-            if (!isRotatable)
-                return false;
+		public virtual bool Rotate(int dir)
+		{
+			if (!isRotatable)
+			{
+				return false;
+			}
 
-            int newRotation = (int)currentRotation + dir;
+			int newRotation = (int)currentRotation + dir;
 
-            if (newRotation > 3)
-                currentRotation = (Direction) 0;
-            else if (newRotation < 0)
-                currentRotation = (Direction) 3;
-            else
-                currentRotation = (Direction) newRotation;
+			currentRotation = newRotation > 3 ? 0 : newRotation < 0 ? (Direction)3 : (Direction)newRotation;
 
-            // Do they have this rotation option?
-            if (GetRotationSprite(currentRotation) == null)
-                return Rotate(dir);
-             
-            renderer.sprite = GetRotationSprite(currentRotation);
+			// Do they have this rotation option?
+			if (GetRotationSprite(currentRotation) == null)
+			{
+				return Rotate(dir);
+			}
 
-            return true;
-        }
+			renderer.sprite = GetRotationSprite(currentRotation);
 
-        private Sprite GetRotationSprite(Direction dir)
-        {
-            switch (dir)
-            {
-                case Direction.Up:
-                    return rotationUp;
+			return true;
+		}
 
-                case Direction.Right:
-                    return rotationRight;
+		private Sprite GetRotationSprite(Direction dir)
+		{
+			return dir switch
+			{
+				Direction.Up => rotationUp,
+				Direction.Right => rotationRight,
+				Direction.Down => rotationDown,
+				Direction.Left => rotationLeft,
+				_ => null,
+			};
+		}
 
-                case Direction.Down:
-                    return rotationDown;
+		public Vector2Int CordsFromDirection(Direction dir)
+		{
+			return dir switch
+			{
+				Direction.Up => new Vector2Int(0, 1),
+				Direction.Right => new Vector2Int(1, 0),
+				Direction.Down => new Vector2Int(0, -1),
+				Direction.Left => new Vector2Int(-1, 0),
+				_ => Vector2Int.zero,
+			};
+		}
 
-                case Direction.Left:
-                    return rotationLeft;
-            }
-            return null;
-        }
+		public void FlashColour(Color colour, float time)
+		{
+			if (flashingColour != null)
+			{
+				StopCoroutine(flashingColour);
+			}
 
-        public Vector2Int CordsFromDirection(Direction dir)
-        {
-            switch (dir)
-            {
-                case Direction.Up:
-                    return new Vector2Int(0,1);
+			flashingColour = FlashColourEffect(colour, time);
+			_ = StartCoroutine(flashingColour);
+		}
 
-                case Direction.Right:
-                    return new Vector2Int(1, 0);
+		private IEnumerator FlashColourEffect(Color colour, float time)
+		{
+			renderer.color = colour;
+			yield return new WaitForSecondsRealtime(time);
+			renderer.color = colourStart;
+		}
 
-                case Direction.Down:
-                    return new Vector2Int(0, -1); 
+		public virtual bool SetRotation(Direction index)
+		{
+			if (isRotatable)
+			{
+				currentRotation = index;
+				renderer.sprite = GetRotationSprite(currentRotation);
+				return true;
+			}
+			return false;
+		}
 
-                case Direction.Left:
-                    return new Vector2Int(-1, 0);
-            }
-            return Vector2Int.zero;
-        }
+		public virtual Direction GetDirection()
+		{
+			return currentRotation;
+		}
 
-        public void FlashColour(Color colour, float time)
-        {
-            if (flashingColour != null)
-                StopCoroutine(flashingColour);
+		public virtual void OnDeleted()
+		{
 
-            flashingColour = FlashColourEffect(colour, time);
-            StartCoroutine(flashingColour);
-        }
+		}
 
-        private IEnumerator FlashColourEffect(Color colour, float time)
-        {
-            renderer.color = colour;
-            yield return new WaitForSecondsRealtime(time);
-            renderer.color = colourStart;
-        }
-
-        public virtual bool SetRotation(Direction index)
-        {
-            if (isRotatable) 
-            { 
-                currentRotation = index;
-                renderer.sprite = GetRotationSprite(currentRotation);
-                return true;
-            }
-            return false;
-        }
-
-        public virtual Direction GetDirection()
-        {
-            return currentRotation;
-        }
-
-        public virtual void OnDeleted()
-        {
-           
-        }
-
-        public void ShowArrows(bool state)
-        {
-            if(arrowsHolder != null)
-                arrowsHolder?.gameObject.SetActive(state);
-        }
-    }
+		public void ShowArrows(bool state)
+		{
+			if (arrowsHolder != null)
+			{
+				arrowsHolder.gameObject.SetActive(state);
+			}
+		}
+	}
 }
