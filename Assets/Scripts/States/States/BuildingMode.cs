@@ -2,71 +2,76 @@ using UnityEngine;
 
 namespace DistilledGames.States
 {
-    public class BuildingMode : BaseState
-    {
-        private float timeEntered;
+	public class BuildingMode : BaseState
+	{
+		private float timeEntered;
 
-        public override void StateEnter()
-        {
-           
-            base.StateEnter();
-            timeEntered = Time.time;
+		public override void StateEnter()
+		{
 
+			base.StateEnter();
+			timeEntered = Time.time;
 
-            if (gameManager.PrevState == StateDefinitions.GameStates.BuildingMode.ToString() || gameManager.PrevState == StateDefinitions.GameStates.BuildingModePlacing.ToString() || gameManager.PrevState == StateDefinitions.GameStates.BuildingModeDeleting.ToString())
-                return;
+			if (gameManager.PrevState == StateDefinitions.GameStates.BuildingMode.ToString() || gameManager.PrevState == StateDefinitions.GameStates.BuildingModePlacing.ToString() || gameManager.PrevState == StateDefinitions.GameStates.BuildingModeDeleting.ToString())
+			{
+				return;
+			}
 
-            BuildingManager.instance.Running = false;
-            BuildingMenu.instance.SwitchPanel(BuildingMenu.BuildingMenuPanels.BuildingOptions);
-            GameManager.Instance.SwitchToCamController(true);
-            BuildingManager.instance.ShowGrid(true);
-            BuildingManager.instance.ShowArrows(true);
-            gameManager.SetBearActive(false);
-            gameManager.SetItemsActive(false);
-            BuildingMenu.instance.ShowMenu();
-        }
+			BuildingManager.Instance.Running = false;
+			BuildingMenu.Instance.SwitchPanel(BuildingMenu.BuildingMenuPanels.BuildingOptions);
+			GameManager.Instance.SwitchToCamController(true);
+			BuildingManager.Instance.ShowGrid(true);
+			BuildingManager.Instance.ShowArrows(true);
+			gameManager.SetBearActive(false);
+			gameManager.SetItemsActive(false);
+			BuildingMenu.Instance.ShowMenu();
+		}
 
-        public override void StateExit()
-        {
-         
-            base.StateExit();
+		public override void StateExit()
+		{
 
-            if (gameManager.NextState == StateDefinitions.GameStates.BuildingMode.ToString() || gameManager.NextState == StateDefinitions.GameStates.BuildingModePlacing.ToString() || gameManager.NextState == StateDefinitions.GameStates.BuildingModeDeleting.ToString())
-                return;
+			base.StateExit();
 
-            BuildingManager.instance.Running = true;
-            GameManager.Instance.SwitchToCamController(false);
-            BuildingManager.instance.ShowGrid(false); 
-            BuildingManager.instance.ShowArrows(false);
-            gameManager.SetBearActive(true);
-            gameManager.SetItemsActive(true);
-            MenuManager.Instance.HideCurrentMenu(MenuManager.Menus.BuildingMenu);
-        }
+			if (gameManager.NextState == StateDefinitions.GameStates.BuildingMode.ToString() || gameManager.NextState == StateDefinitions.GameStates.BuildingModePlacing.ToString() || gameManager.NextState == StateDefinitions.GameStates.BuildingModeDeleting.ToString())
+			{
+				return;
+			}
 
-        public override void StateUpdate()
-        {
-            base.StateUpdate();
-        }
+			BuildingManager.Instance.Running = true;
+			GameManager.Instance.SwitchToCamController(false);
+			BuildingManager.Instance.ShowGrid(false);
+			BuildingManager.Instance.ShowArrows(false);
+			gameManager.SetBearActive(true);
+			gameManager.SetItemsActive(true);
+			MenuManager.Instance.HideCurrentMenu(MenuManager.Menus.BuildingMenu);
+		}
 
-        public override StateDefinitions.ChangeInState PrimaryInteractionPressed()
-        {
-            return StateDefinitions.ChangeInState.NoChange;
-        }
+		public override void StateUpdate()
+		{
+			base.StateUpdate();
+		}
 
-        public override StateDefinitions.ChangeInState MovementInput(Vector2 input)
-        {
-            GameManager.Instance.CamController.OnMove(input);
-            return StateDefinitions.ChangeInState.NoChange;
-        }
+		public override StateDefinitions.ChangeInState PrimaryInteractionPressed()
+		{
+			return StateDefinitions.ChangeInState.NoChange;
+		}
 
-        public override StateDefinitions.ChangeInState EnterBuildMode()
-        {
-            if (Time.time - timeEntered <= .5f)
-                return StateDefinitions.ChangeInState.NoChange;
+		public override StateDefinitions.ChangeInState MovementInput(Vector2 input)
+		{
+			GameManager.Instance.CamController.OnMove(input);
+			return StateDefinitions.ChangeInState.NoChange;
+		}
 
-            gameManager.NextState = StateDefinitions.GameStates.Normal.ToString();
-            return StateDefinitions.ChangeInState.NextState;
-        }
-    }
+		public override StateDefinitions.ChangeInState EnterBuildMode()
+		{
+			if (Time.time - timeEntered <= .5f)
+			{
+				return StateDefinitions.ChangeInState.NoChange;
+			}
+
+			gameManager.NextState = StateDefinitions.GameStates.Normal.ToString();
+			return StateDefinitions.ChangeInState.NextState;
+		}
+	}
 }
 

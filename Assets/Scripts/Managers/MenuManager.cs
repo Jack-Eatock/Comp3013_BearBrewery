@@ -1,64 +1,68 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace DistilledGames
 {
-    public class MenuManager : MonoBehaviour
-    {
-        public static MenuManager Instance;
+	public class MenuManager : MonoBehaviour
+	{
+		public static MenuManager Instance;
 
-        public enum Menus { None, BuildingMenu, MainMenu, Settings }
+		public enum Menus { None, BuildingMenu, MainMenu, Settings }
 
-        private Menus activeMenu = Menus.None;
+		private Menus activeMenu = Menus.None;
 
+		[SerializeField] private BuildingMenu buildingMenu;
+		[SerializeField] private MainMenu mainMenu;
 
-        [SerializeField] private BuildingMenu buildingMenu;
-        [SerializeField] private MainMenu mainMenu;
+		// GUI
 
-        // GUI
+		[SerializeField] private GameObject gui;
 
-        [SerializeField] private GameObject gui;
+		private void Awake()
+		{
+			if (Instance == null)
+			{
+				Instance = this;
+			}
+			else
+			{
+				Destroy(gameObject);
+			}
+		}
 
-        private void Awake()
-        {
-            if (Instance == null)
-                Instance = this;
-            else
-                Destroy(gameObject);
-        }
+		public void SetGUIState(bool active)
+		{
+			gui.SetActive(active);
+		}
 
-        public void SetGUIState(bool active)
-        {
-            gui.SetActive(active);
-        }
+		public void SetCurrentMenu(Menus menuToShow)
+		{
+			if (activeMenu == menuToShow)
+			{
+				return;
+			}
 
-        public void SetCurrentMenu(Menus menuToShow)
-        {
-            if (activeMenu == menuToShow)
-                return;
+			if (activeMenu != Menus.None)
+			{
+				HideCurrentMenu(activeMenu);
+			}
 
-            if (activeMenu != Menus.None)
-                HideCurrentMenu(activeMenu);
+			activeMenu = menuToShow;
+		}
 
-            activeMenu = menuToShow;
-        }
+		public void HideCurrentMenu(Menus menuToHide)
+		{
+			activeMenu = Menus.None;
+			switch (menuToHide)
+			{
+				case Menus.BuildingMenu:
+					buildingMenu.HideMenu();
+					break;
 
-        public void HideCurrentMenu(Menus menuToHide)
-        {
-            activeMenu = Menus.None;
-            switch (menuToHide)
-            {
-                case Menus.BuildingMenu:
-                    buildingMenu.HideMenu();
-                    break;
-
-                case Menus.MainMenu: 
-                    mainMenu.HideMenu();
-                    break;
-            }
-        }
-    }
+				case Menus.MainMenu:
+					mainMenu.HideMenu();
+					break;
+			}
+		}
+	}
 
 }

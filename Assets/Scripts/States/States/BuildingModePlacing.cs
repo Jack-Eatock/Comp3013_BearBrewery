@@ -1,149 +1,171 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace DistilledGames.States
 {
-    public class BuildingModePlacing : BaseState
-    {
-        private Building buildingPlacing;
-        private List<Vector3Int> requiredCoords = new List<Vector3Int>();
-        private Vector3Int currentSelectedCoords;
-        private float timeEntered;
-        private bool rotated = false;
-        private Direction direction = Direction.Up;
+	public class BuildingModePlacing : BaseState
+	{
+		private Building buildingPlacing;
+		private readonly List<Vector3Int> requiredCoords = new();
+		private Vector3Int currentSelectedCoords;
+		private float timeEntered;
+		private bool rotated = false;
+		private Direction direction = Direction.Up;
 
-        public override void StateEnter()
-        {
-            base.StateEnter();
-            timeEntered = Time.time;
-            SpawnBuilding();
+		public override void StateEnter()
+		{
+			base.StateEnter();
+			timeEntered = Time.time;
+			SpawnBuilding();
 
-            if (gameManager.PrevState == StateDefinitions.GameStates.BuildingMode.ToString() || gameManager.PrevState == StateDefinitions.GameStates.BuildingModePlacing.ToString() || gameManager.PrevState == StateDefinitions.GameStates.BuildingModeDeleting.ToString())
-                return;
-            BuildingManager.instance.Running = false;
-            // Camera.main.fieldOfView
-            GameManager.Instance.SwitchToCamController(true);
-            BuildingManager.instance.ShowGrid(true);
-            BuildingManager.instance.ShowArrows(true);
-            gameManager.SetBearActive(false);
-            gameManager.SetItemsActive(false);
-            BuildingMenu.instance.ShowMenu();
-        }
+			if (gameManager.PrevState == StateDefinitions.GameStates.BuildingMode.ToString() || gameManager.PrevState == StateDefinitions.GameStates.BuildingModePlacing.ToString() || gameManager.PrevState == StateDefinitions.GameStates.BuildingModeDeleting.ToString())
+			{
+				return;
+			}
 
-        public override void StateExit()
-        {
-            GameObject.Destroy(buildingPlacing.gameObject);
-            base.StateExit();
+			BuildingManager.Instance.Running = false;
+			// Camera.main.fieldOfView
+			GameManager.Instance.SwitchToCamController(true);
+			BuildingManager.Instance.ShowGrid(true);
+			BuildingManager.Instance.ShowArrows(true);
+			gameManager.SetBearActive(false);
+			gameManager.SetItemsActive(false);
+			BuildingMenu.Instance.ShowMenu();
+		}
 
-            if (gameManager.NextState == StateDefinitions.GameStates.BuildingMode.ToString() || gameManager.NextState == StateDefinitions.GameStates.BuildingModePlacing.ToString() || gameManager.NextState == StateDefinitions.GameStates.BuildingModeDeleting.ToString())
-                return;
+		public override void StateExit()
+		{
+			GameObject.Destroy(buildingPlacing.gameObject);
+			base.StateExit();
 
-            BuildingManager.instance.Running = true;
-            GameManager.Instance.SwitchToCamController(false);
-            BuildingManager.instance.ShowGrid(false);
-            BuildingManager.instance.ShowArrows(false);
-            gameManager.SetBearActive(true);
-            gameManager.SetItemsActive(true);
-            MenuManager.Instance.HideCurrentMenu(MenuManager.Menus.BuildingMenu);
-        }
+			if (gameManager.NextState == StateDefinitions.GameStates.BuildingMode.ToString() || gameManager.NextState == StateDefinitions.GameStates.BuildingModePlacing.ToString() || gameManager.NextState == StateDefinitions.GameStates.BuildingModeDeleting.ToString())
+			{
+				return;
+			}
 
-        public override void StateUpdate()
-        {
-            base.StateUpdate();
+			BuildingManager.Instance.Running = true;
+			GameManager.Instance.SwitchToCamController(false);
+			BuildingManager.Instance.ShowGrid(false);
+			BuildingManager.Instance.ShowArrows(false);
+			gameManager.SetBearActive(true);
+			gameManager.SetItemsActive(true);
+			MenuManager.Instance.HideCurrentMenu(MenuManager.Menus.BuildingMenu);
+		}
 
-            if (buildingPlacing == null)
-                return;
+		public override void StateUpdate()
+		{
+			base.StateUpdate();
 
-            Vector3Int closestCoord = BuildingManager.instance.ClosestGridCoord();
+			if (buildingPlacing == null)
+			{
+				return;
+			}
 
-            Helper.UpdateSortingOrder(buildingPlacing.Rend, buildingPlacing.transform);
+			Vector3Int closestCoord = BuildingManager.Instance.ClosestGridCoord();
 
-            // What coords would be required?
-            requiredCoords.Clear();
-            for (int width = 0; width < buildingPlacing.data.Width; width++)
-                for (int height = 0; height < buildingPlacing.data.Height; height++)
-                    requiredCoords.Add(closestCoord + new Vector3Int(width, height, 0));
+			Helper.UpdateSortingOrder(buildingPlacing.Rend, buildingPlacing.transform);
 
-            // Are all these coords within bounds?
-            if (BuildingManager.instance.OurCoordsWithinBounds(requiredCoords))
-            {
-                currentSelectedCoords = closestCoord;
-                Vector3 offset = new Vector3((BuildingManager.instance.TileMapGrid.cellSize.x / 2) * buildingPlacing.data.Width, (BuildingManager.instance.TileMapGrid.cellSize.y / 2) * buildingPlacing.data.Height, 0);
-                buildingPlacing.transform.position = BuildingManager.instance.GetWorldPosOfGridCoord(closestCoord) + offset; 
-            }
-        }
+			// What coords would be required?
+			requiredCoords.Clear();
+			for (int width = 0; width < buildingPlacing.Data.Width; width++)
+			{
+				for (int height = 0; height < buildingPlacing.Data.Height; height++)
+				{
+					requiredCoords.Add(closestCoord + new Vector3Int(width, height, 0));
+				}
+			}
 
-        public override StateDefinitions.ChangeInState PrimaryInteractionPressed()
-        {
-            if (buildingPlacing == null)
-                return StateDefinitions.ChangeInState.NoChange;
+			// Are all these coords within bounds?
+			if (BuildingManager.Instance.OurCoordsWithinBounds(requiredCoords))
+			{
+				currentSelectedCoords = closestCoord;
+				Vector3 offset = new(BuildingManager.Instance.TileMapGrid.cellSize.x / 2 * buildingPlacing.Data.Width, BuildingManager.Instance.TileMapGrid.cellSize.y / 2 * buildingPlacing.Data.Height, 0);
+				buildingPlacing.transform.position = BuildingManager.Instance.GetWorldPosOfGridCoord(closestCoord) + offset;
+			}
+		}
 
-            Debug.Log("Try to place object");
+		public override StateDefinitions.ChangeInState PrimaryInteractionPressed()
+		{
+			if (buildingPlacing == null)
+			{
+				return StateDefinitions.ChangeInState.NoChange;
+			}
 
-            if (!EventSystem.current.IsPointerOverGameObject() && BuildingManager.instance.PlaceObject(new Vector2Int(currentSelectedCoords.x, currentSelectedCoords.y), buildingPlacing))
-            {
-                GameManager.Instance.SpentCash(buildingPlacing.data.Cost);
-                BuildingMenu.instance.RefreshCosts();
-                Debug.Log("placed");
-                AudioManager.instance.SFX_PlayClip("Placed", 1f);
-                // Placing multiple?
-                SpawnBuilding();
-                return StateDefinitions.ChangeInState.NoChange;
-            }
-            else if (!EventSystem.current.IsPointerOverGameObject())
-            {
-                Debug.Log("Cant place here");
-                buildingPlacing.FlashColour(Color.red, .2f);
-                AudioManager.instance.SFX_PlayClip("CantPlace", 1f);
-            }
-          
+			Debug.Log("Try to place object");
 
-            return StateDefinitions.ChangeInState.NoChange;
-        }
+			if (!EventSystem.current.IsPointerOverGameObject() && BuildingManager.Instance.PlaceObject(new Vector2Int(currentSelectedCoords.x, currentSelectedCoords.y), buildingPlacing))
+			{
+				GameManager.Instance.SpentCash(buildingPlacing.Data.Cost);
+				BuildingMenu.Instance.RefreshCosts();
+				Debug.Log("placed");
+				AudioManager.Instance.SFX_PlayClip("Placed", 1f);
+				// Placing multiple?
+				SpawnBuilding();
+				return StateDefinitions.ChangeInState.NoChange;
+			}
+			else if (!EventSystem.current.IsPointerOverGameObject())
+			{
+				Debug.Log("Cant place here");
+				buildingPlacing.FlashColour(Color.red, .2f);
+				AudioManager.Instance.SFX_PlayClip("CantPlace", 1f);
+			}
 
-        private void SpawnBuilding()
-        {
-            buildingPlacing = GameObject.Instantiate(BuildingManager.instance.selectedBuilding.BuidlingPrefab);
-            buildingPlacing.data = BuildingManager.instance.selectedBuilding;
-            buildingPlacing.ShowArrows(true);
+			return StateDefinitions.ChangeInState.NoChange;
+		}
 
-            if (rotated)
-                buildingPlacing.SetRotation(direction);
-        }
+		private void SpawnBuilding()
+		{
+			buildingPlacing = GameObject.Instantiate(BuildingManager.Instance.SelectedBuilding.BuidlingPrefab);
+			buildingPlacing.Data = BuildingManager.Instance.SelectedBuilding;
+			buildingPlacing.ShowArrows(true);
 
-        public override StateDefinitions.ChangeInState MovementInput(Vector2 input)
-        {
-            GameManager.Instance.CamController.OnMove(input);
-            return StateDefinitions.ChangeInState.NoChange;
-        }
+			if (rotated)
+			{
+				_ = buildingPlacing.SetRotation(direction);
+			}
+		}
 
-        public override StateDefinitions.ChangeInState EnterBuildMode()
-        {
-            if (Time.time - timeEntered <= .5f)
-                return StateDefinitions.ChangeInState.NoChange;
-            GameObject.Destroy(buildingPlacing.gameObject);
+		public override StateDefinitions.ChangeInState MovementInput(Vector2 input)
+		{
+			GameManager.Instance.CamController.OnMove(input);
+			return StateDefinitions.ChangeInState.NoChange;
+		}
 
-            gameManager.NextState = StateDefinitions.GameStates.Normal.ToString();
-            return StateDefinitions.ChangeInState.NextState;
-        }
+		public override StateDefinitions.ChangeInState EnterBuildMode()
+		{
+			if (Time.time - timeEntered <= .5f)
+			{
+				return StateDefinitions.ChangeInState.NoChange;
+			}
 
-        public override StateDefinitions.ChangeInState RotateInput(int dir)
-        {
-            if (buildingPlacing == null)
-                return StateDefinitions.ChangeInState.NoChange;
+			GameObject.Destroy(buildingPlacing.gameObject);
 
-            // Try to rotate building
-            if (buildingPlacing.Rotate(dir))
-            {
-                rotated = true;
-                direction = buildingPlacing.GetDirection();
-                Debug.Log("Rotated");
-            }
-            else
-                Debug.Log("Cant rotate");
-            return StateDefinitions.ChangeInState.NoChange;
-        }
-    }
+			gameManager.NextState = StateDefinitions.GameStates.Normal.ToString();
+			return StateDefinitions.ChangeInState.NextState;
+		}
+
+		public override StateDefinitions.ChangeInState RotateInput(int dir)
+		{
+			if (buildingPlacing == null)
+			{
+				return StateDefinitions.ChangeInState.NoChange;
+			}
+
+			// Try to rotate building
+			if (buildingPlacing.Rotate(dir))
+			{
+				rotated = true;
+				direction = buildingPlacing.GetDirection();
+				Debug.Log("Rotated");
+			}
+			else
+			{
+				Debug.Log("Cant rotate");
+			}
+
+			return StateDefinitions.ChangeInState.NoChange;
+		}
+	}
 }
 

@@ -1,71 +1,74 @@
 using DistilledGames;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 [System.Serializable]
 public class Column
 {
-    public TMP_Dropdown itemDropdown;
-    public TMP_InputField quantityInput;
-    public TMP_Text costText;
-    public Button confirmButton;
+	public TMP_Dropdown ItemDropdown;
+	public TMP_InputField QuantityInput;
+	public TMP_Text CostText;
+	public Button ConfirmButton;
 }
 
 public class EndOfDayMenu : MonoBehaviour
 {
-    [Header("UI Elements")]
-    public Column[] columns; // Array of columns that each contain dropdown, inputfield, text, and button
+	[Header("UI Elements")]
+	public Column[] Columns; // Array of columns that each contain dropdown, inputfield, text, and button
 
-    [Header("Items Data")]
-    public List<Item> availableItems;
+	[Header("Items Data")]
+	public List<Item> AvailableItems;
 
-    private void Start()
-    {
-        InitializeColumns();
-        SetupUIEventListeners();
-    }
+	private void Start()
+	{
+		InitializeColumns();
+		SetupUIEventListeners();
+	}
 
-    private void InitializeColumns()
-    {
-        foreach (var column in columns)
-        {
-            column.itemDropdown.ClearOptions();
-            List<TMP_Dropdown.OptionData> options = new List<TMP_Dropdown.OptionData>();
-            foreach (var item in availableItems)
-            {
-                options.Add(new TMP_Dropdown.OptionData(item.ItemName));
-            }
-            column.itemDropdown.AddOptions(options);
-        }
-    }
+	private void InitializeColumns()
+	{
+		foreach (Column column in Columns)
+		{
+			column.ItemDropdown.ClearOptions();
+			List<TMP_Dropdown.OptionData> options = new();
+			foreach (Item item in AvailableItems)
+			{
+				options.Add(new TMP_Dropdown.OptionData(item.ItemName));
+			}
+			column.ItemDropdown.AddOptions(options);
+		}
+	}
 
-    private void SetupUIEventListeners()
-    {
-        for (int i = 0; i < columns.Length; i++)
-        {
-            int index = i;        
-            columns[i].itemDropdown.onValueChanged.AddListener(delegate { CalculateAndShowCost(index); });
-            columns[i].quantityInput.onValueChanged.AddListener(delegate { CalculateAndShowCost(index); });
-        }
-    }
+	private void SetupUIEventListeners()
+	{
+		for (int i = 0; i < Columns.Length; i++)
+		{
+			int index = i;
+			Columns[i].ItemDropdown.onValueChanged.AddListener(delegate { CalculateAndShowCost(index); });
+			Columns[i].QuantityInput.onValueChanged.AddListener(delegate { CalculateAndShowCost(index); });
+		}
+	}
 
-    public void CalculateAndShowCost(int columnIndex)
-    {
-        if (columnIndex < 0 || columnIndex >= columns.Length) return;
+	public void CalculateAndShowCost(int columnIndex)
+	{
+		if (columnIndex < 0 || columnIndex >= Columns.Length)
+		{
+			return;
+		}
 
-        Column column = columns[columnIndex];
-        Item selectedItem = availableItems[column.itemDropdown.value];
+		Column column = Columns[columnIndex];
+		Item selectedItem = AvailableItems[column.ItemDropdown.value];
 
-        if (!int.TryParse(column.quantityInput.text, out int quantity))
-        {
-            Debug.LogError("Invalid quantity input!");
-            return;
-        }
+		if (!int.TryParse(column.QuantityInput.text, out int quantity))
+		{
+			Debug.LogError("Invalid quantity input!");
+			return;
+		}
 
-        float totalCost = selectedItem.BuyValue * quantity;
-        column.costText.SetText($"Cost: ${totalCost:F2}");
-    }
+		float totalCost = selectedItem.BuyValue * quantity;
+		column.CostText.SetText($"Cost: ${totalCost:F2}");
+	}
 
 }

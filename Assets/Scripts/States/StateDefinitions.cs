@@ -1,34 +1,31 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Composites;
-using UnityEngine.UI;
 
 namespace DistilledGames
 {
-    public class StateDefinitions : MonoBehaviour
-    {
-        public enum GameStates { Normal, BuildingMode, InMenu, BuildingModePlacing, EndOfDay, BuildingModeDeleting }
-        public enum ChangeInState { NoChange, NextState, PreviousState }
+	public class StateDefinitions : MonoBehaviour
+	{
+		public enum GameStates { Normal, BuildingMode, InMenu, BuildingModePlacing, EndOfDay, BuildingModeDeleting }
+		public enum ChangeInState { NoChange, NextState, PreviousState }
 
-        public interface IStateManager
-        {
-            void StateEnter();
+		public interface IStateManager
+		{
+			void StateEnter();
 
-            void StateExit();
+			void StateExit();
 
-            void StateUpdate();
+			void StateUpdate();
 
-            ChangeInState PrimaryInteractionPressed();
+			ChangeInState PrimaryInteractionPressed();
 
-            ChangeInState SecondaryInteractionPressed();
+			ChangeInState SecondaryInteractionPressed();
 
-            ChangeInState RotateInput(int dir);
+			ChangeInState RotateInput(int dir);
 
-            ChangeInState EnterBuildMode();
+			ChangeInState EnterBuildMode();
 
-            ChangeInState MovementInput(Vector2 input);
+			ChangeInState MovementInput(Vector2 input);
 
-            ChangeInState Escape();
-        }
-    }
+			ChangeInState Escape();
+		}
+	}
 }
