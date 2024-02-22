@@ -96,6 +96,17 @@ namespace DistilledGames
 						_ => null,
 					};
 
+
+				case ConveyerType.Merger:
+					return directionIn switch
+					{
+						Direction.Up => TRotationUp,
+						Direction.Right => TRotationRight,
+						Direction.Down => TRotationDown,
+						Direction.Left => TRotationLeft,
+						_ => null,
+					};
+
 			}
 			return rotationUp;
 		}

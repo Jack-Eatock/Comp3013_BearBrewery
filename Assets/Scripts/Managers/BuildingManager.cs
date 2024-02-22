@@ -356,11 +356,17 @@ namespace DistilledGames
 				conveyer.SetConveyerType(Conveyer.ConveyerType.Splitter, tmpDirection);
 			}
 
+			else if (IsMerger(ref tmpConveyer, out tmpDirection))
+			{
+				conveyer.SetConveyerType(Conveyer.ConveyerType.Merger, tmpDirection);
+			}
+
 			// Curved - No input from the back, 1 input from the side.
 			else if (IsCurved(ref tmpConveyer))
 			{
 				conveyer.SetConveyerType(Conveyer.ConveyerType.Corner, tmpConveyer.GetDirection());
 			}
+
 			else
 			{
 				conveyer.SetConveyerType(Conveyer.ConveyerType.Normal, tmpConveyer.GetDirection());
@@ -519,6 +525,125 @@ namespace DistilledGames
 						targetDirection = tmpConveyer2.GetDirection();
 					}
 
+					conveyerIn = tmpConveyer2;
+					return true;
+				}
+
+				return false;
+			}
+			bool IsMerger(ref Conveyer conveyerIn, out Direction targetDirection)
+			{
+				// Two nodes out
+				// Figure out how many nodes outwards
+				targetDirection = Direction.Up;
+				List<Conveyer> outputs = new List<Conveyer>();
+				List<Conveyer> inputs = new List<Conveyer>();
+				Conveyer tmpConveyer2 = tmpConveyer;
+				if (conveyers.ContainsKey(coordFront) && conveyers.TryGetValue(coordFront, out tmpConveyer))
+				{
+					// See if it is pointing away from us
+					tmpVector = tmpConveyer.GridCoords - tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+					if (tmpVector == conveyerCord)
+					{
+						tmpConveyer2 = tmpConveyer;
+						outputs.Add(tmpConveyer);
+					}
+					else
+					{
+						tmpVector = tmpConveyer.GridCoords + tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+						if (tmpVector == conveyerCord)
+						{
+							
+							inputs.Add(tmpConveyer);
+						}
+
+					}
+				}
+
+				if (conveyers.ContainsKey(coordRight) && conveyers.TryGetValue(coordRight, out tmpConveyer))
+				{
+					// See if it is pointing away from us
+					tmpVector = tmpConveyer.GridCoords - tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+					if (tmpVector == conveyerCord)
+					{
+						tmpConveyer2 = tmpConveyer;
+						outputs.Add(tmpConveyer);
+					}
+					else
+					{
+						tmpVector = tmpConveyer.GridCoords + tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+						if (tmpVector == conveyerCord)
+						{
+							inputs.Add(tmpConveyer);
+							
+						}
+					}
+				}
+
+				if (conveyers.ContainsKey(coordBack) && conveyers.TryGetValue(coordBack, out tmpConveyer))
+				{
+					// See if it is pointing away from us
+					tmpVector = tmpConveyer.GridCoords - tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+					if (tmpVector == conveyerCord)
+					{
+						tmpConveyer2 = tmpConveyer;
+						outputs.Add(tmpConveyer);
+					}
+					else
+					{
+						tmpVector = tmpConveyer.GridCoords + tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+						if (tmpVector == conveyerCord)
+						{
+							
+							inputs.Add(tmpConveyer);
+						}
+					}
+				}
+
+				if (conveyers.ContainsKey(coordLeft) && conveyers.TryGetValue(coordLeft, out tmpConveyer))
+				{
+					// See if it is pointing away from us
+					tmpVector = tmpConveyer.GridCoords - tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+					if (tmpVector == conveyerCord)
+					{
+						tmpConveyer2 = tmpConveyer;
+						outputs.Add(tmpConveyer);
+					}
+					else
+					{
+						tmpVector = tmpConveyer.GridCoords + tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+						if (tmpVector == conveyerCord)
+						{
+							inputs.Add(tmpConveyer);
+						
+						}
+					}
+				}
+
+				if (inputs.Count == 2 && outputs.Count == 1)
+				{
+
+					bool sameDir = false;
+					int whichWasNotSame = 0;
+
+					for (int i = 0; i < inputs.Count; i++)
+					{
+						if (inputs[i].GetDirection() == outputs[0].GetDirection())
+							sameDir = true;
+						else
+							whichWasNotSame = i;
+					}
+
+					if (sameDir)
+					{
+						targetDirection = inputs[whichWasNotSame].GetDirection();
+					}
+					else
+					{
+						targetDirection = IterateDirection(tmpConveyer2.GetDirection(), 2);
+					}
+
+					
 					conveyerIn = tmpConveyer2;
 					return true;
 				}
