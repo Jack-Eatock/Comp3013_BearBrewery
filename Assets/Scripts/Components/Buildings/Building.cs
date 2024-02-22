@@ -73,7 +73,10 @@ namespace DistilledGames
 				result = result % 4;
 
 			else if (result < 0)
-				result = 3 - Math.Abs(result) % 4;
+			{
+				result = 4 - Math.Abs(result) % 4;
+			}
+				
 
 			Direction dirResult = (Direction)result;
 

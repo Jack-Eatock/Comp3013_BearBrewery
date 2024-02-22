@@ -21,11 +21,16 @@ namespace DistilledGames
 		[SerializeField]
 		private Sprite curvedRotationRightUp, curvedRotationRightDown, curvedRotationLeftUp, curvedRotationLeftDown, curvedRotationUpRight, curvedRotationUpLeft, curvedRotationDownRight, curvedRotationDownLeft;
 
+		[SerializeField]
+		private Sprite TRotationUp, TRotationRight, TRotationDown, TRotationLeft;
+
 		private Direction directionIn;
 
 		public void SetConveyerType(ConveyerType _type, Direction dirIn)
 		{
 			directionIn = dirIn;
+
+
 			type = _type;
 			UpdateSprite();
 		}
@@ -80,6 +85,16 @@ namespace DistilledGames
 					}
 
 					break;
+
+				case ConveyerType.Splitter:
+					return directionIn switch
+					{
+						Direction.Up => TRotationUp,
+						Direction.Right => TRotationRight,
+						Direction.Down => TRotationDown,
+						Direction.Left => TRotationLeft,
+						_ => null,
+					};
 
 			}
 			return rotationUp;

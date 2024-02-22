@@ -350,8 +350,14 @@ namespace DistilledGames
 			Vector2Int coordBack  = conveyerCord + conveyer.CordsFromDirection(IterateDirection(conveyer.GetDirection(), 2));
 			Vector2Int coordLeft  = conveyerCord + conveyer.CordsFromDirection(IterateDirection(conveyer.GetDirection(), 3));
 
+			Direction tmpDirection;
+			if (IsSplitter(ref tmpConveyer, out tmpDirection))
+			{
+				conveyer.SetConveyerType(Conveyer.ConveyerType.Splitter, tmpDirection);
+			}
+
 			// Curved - No input from the back, 1 input from the side.
-			if (IsCurved(ref tmpConveyer))
+			else if (IsCurved(ref tmpConveyer))
 			{
 				conveyer.SetConveyerType(Conveyer.ConveyerType.Corner, tmpConveyer.GetDirection());
 			}
@@ -365,6 +371,7 @@ namespace DistilledGames
 
 			bool IsCurved(ref Conveyer conveyerIn)
 			{
+			
 				// No input from back
 				if (conveyers.ContainsKey(coordBack) && conveyers.TryGetValue(coordBack, out tmpConveyer))
 				{
@@ -405,6 +412,119 @@ namespace DistilledGames
 				return false;
 			}
 
+			bool IsSplitter(ref Conveyer conveyerIn, out Direction targetDirection)
+			{
+				// Two nodes out
+				// Figure out how many nodes outwards
+				targetDirection = Direction.Up;
+				List<Conveyer> outputs = new List<Conveyer>();
+				List<Conveyer> inputs = new List<Conveyer>();
+				Conveyer tmpConveyer2 = tmpConveyer;
+				if (conveyers.ContainsKey(coordFront) && conveyers.TryGetValue(coordFront, out tmpConveyer))
+				{
+					// See if it is pointing away from us
+					tmpVector = tmpConveyer.GridCoords - tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+					if (tmpVector == conveyerCord)
+					{
+						outputs.Add(tmpConveyer);
+					}
+					else
+					{
+						tmpVector = tmpConveyer.GridCoords + tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+						if (tmpVector == conveyerCord)
+						{
+							tmpConveyer2 = tmpConveyer;
+							inputs.Add(tmpConveyer);
+						}
+							
+					}
+				}
+
+				if (conveyers.ContainsKey(coordRight) && conveyers.TryGetValue(coordRight, out tmpConveyer))
+				{
+					// See if it is pointing away from us
+					tmpVector = tmpConveyer.GridCoords - tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+					if (tmpVector == conveyerCord)
+					{
+						outputs.Add(tmpConveyer);
+					}
+					else
+					{
+						tmpVector = tmpConveyer.GridCoords + tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+						if (tmpVector == conveyerCord)
+						{
+							inputs.Add(tmpConveyer);
+							tmpConveyer2 = tmpConveyer;
+						}
+					}
+				}
+
+				if (conveyers.ContainsKey(coordBack) && conveyers.TryGetValue(coordBack, out tmpConveyer))
+				{
+					// See if it is pointing away from us
+					tmpVector = tmpConveyer.GridCoords - tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+					if (tmpVector == conveyerCord)
+					{
+						outputs.Add(tmpConveyer);
+					}
+					else
+					{
+						tmpVector = tmpConveyer.GridCoords + tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+						if (tmpVector == conveyerCord) 
+						{
+							tmpConveyer2 = tmpConveyer;
+							inputs.Add(tmpConveyer);
+						}
+					}
+				}
+
+				if (conveyers.ContainsKey(coordLeft) && conveyers.TryGetValue(coordLeft, out tmpConveyer))
+				{
+					// See if it is pointing away from us
+					tmpVector = tmpConveyer.GridCoords - tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+					if (tmpVector == conveyerCord)
+					{
+						outputs.Add(tmpConveyer);
+					}
+					else
+					{
+						tmpVector = tmpConveyer.GridCoords + tmpConveyer.CordsFromDirection(tmpConveyer.GetDirection());
+						if (tmpVector == conveyerCord)
+						{
+							inputs.Add(tmpConveyer);
+							tmpConveyer2 = tmpConveyer;
+						}
+					}
+				}
+
+				if (inputs.Count == 1 && outputs.Count == 2)
+				{
+					bool sameDir = false;
+					int whichWasNotSame = 0;
+
+					for (int i = 0; i < outputs.Count; i++)
+					{
+						if (outputs[i].GetDirection() == inputs[0].GetDirection())
+							sameDir = true;
+						else
+							whichWasNotSame = i;
+					}
+
+					if (sameDir)
+					{
+						targetDirection = IterateDirection(outputs[whichWasNotSame].GetDirection(), 2);
+					}
+					else
+					{
+						targetDirection = tmpConveyer2.GetDirection();
+					}
+
+					conveyerIn = tmpConveyer2;
+					return true;
+				}
+
+				return false;
+			}
 		}
 
 		private void CalculateConveyerConnections()
@@ -457,11 +577,6 @@ namespace DistilledGames
 					// Connection behind
 					
 				}
-
-		
-
-
-
 				conveyer.SetOutConnections(outGoingConnections);
 			}
 		}
@@ -473,7 +588,8 @@ namespace DistilledGames
 				result = result % 4;
 
 			else if (result < 0)
-				result = 3 - Math.Abs(result) % 4;
+				result = 4 - Math.Abs(result) % 4;
+
 
 			Direction dirResult = (Direction)result;
 
