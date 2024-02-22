@@ -15,6 +15,8 @@ namespace DistilledGames
 		private IConveyerInteractable sendingTo = null;
 		private IEnumerator movingItem = null;
 
+		private List<Vector2Int> desiredOutputs = new List<Vector2Int>();
+
 		[SerializeField]
 		private List<IConveyerInteractable> outConnections = new();
 
@@ -25,6 +27,16 @@ namespace DistilledGames
 		private Sprite TRotationUp, TRotationRight, TRotationDown, TRotationLeft;
 
 		private Direction directionIn;
+
+
+		public void SetDesiredOutputs(List<Vector2Int> outputs)
+		{
+			desiredOutputs = outputs;
+		}
+		public List<Vector2Int> GetDesiredOutputs()
+		{
+			return desiredOutputs;
+		}
 
 		public void SetConveyerType(ConveyerType _type, Direction dirIn)
 		{

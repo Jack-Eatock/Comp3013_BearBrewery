@@ -106,6 +106,7 @@ namespace DistilledGames.States
 			else if (!EventSystem.current.IsPointerOverGameObject())
 			{
 				Debug.Log("Cant place here");
+
 				buildingPlacing.FlashColour(Color.red, .2f);
 				AudioManager.Instance.SFX_PlayClip("CantPlace", 1f);
 			}
