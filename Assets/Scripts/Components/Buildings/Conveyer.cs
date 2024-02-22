@@ -6,12 +6,84 @@ namespace DistilledGames
 {
 	public class Conveyer : Building, IInteractable, IConveyerInteractable
 	{
+		public enum ConveyerType { Normal, Corner, Splitter, Merger }
+		private ConveyerType type;
+
+		public ConveyerType Type => type;
+
 		private Item itemOnBelt = null;
 		private IConveyerInteractable sendingTo = null;
 		private IEnumerator movingItem = null;
 
 		[SerializeField]
 		private List<IConveyerInteractable> outConnections = new();
+
+		[SerializeField]
+		private Sprite curvedRotationRightUp, curvedRotationRightDown, curvedRotationLeftUp, curvedRotationLeftDown, curvedRotationUpRight, curvedRotationUpLeft, curvedRotationDownRight, curvedRotationDownLeft;
+
+		private Direction directionIn;
+
+		public void SetConveyerType(ConveyerType _type, Direction dirIn)
+		{
+			directionIn = dirIn;
+			type = _type;
+			UpdateSprite();
+		}
+
+		protected override Sprite GetRotationSprite(Direction dir)
+		{
+			switch (type)
+			{
+				case ConveyerType.Normal:
+					return dir switch
+					{
+						Direction.Up => rotationUp,
+						Direction.Right => rotationRight,
+						Direction.Down => rotationDown,
+						Direction.Left => rotationLeft,
+						_ => null,
+					};
+			
+
+				case ConveyerType.Corner:
+
+					if (dir == Direction.Up)
+					{
+						if (directionIn == Direction.Right)
+							return curvedRotationRightUp;
+						else
+							return curvedRotationLeftUp;
+					}
+
+					if (dir == Direction.Right)
+					{
+						if (directionIn == Direction.Up)
+							return curvedRotationUpRight;
+						else
+							return curvedRotationDownRight;
+					}
+
+					if (dir == Direction.Down)
+					{
+						if (directionIn == Direction.Right)
+							return curvedRotationRightDown;
+						else
+							return curvedRotationLeftDown;
+					}
+
+					if (dir == Direction.Left)
+					{
+						if (directionIn == Direction.Up)
+							return curvedRotationUpLeft;
+						else
+							return curvedRotationDownLeft;
+					}
+
+					break;
+
+			}
+			return rotationUp;
+		}
 
 		#region Conveyer Running Process
 
