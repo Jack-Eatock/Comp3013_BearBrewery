@@ -158,10 +158,7 @@ namespace DistilledGames
 			placedObjects.Add(coords, objToPlace);
 
 			if (objToPlace.TryGetComponent(out Conveyer conveyer))
-			{
 				conveyers.Add(coords, conveyer);
-				//AddConveyerConnection(coords, conveyer);
-			}
 
 			objToPlace.OnPlaced(coords);
 			CalculateConveyerConnections();
@@ -578,6 +575,7 @@ namespace DistilledGames
 				{
 					placing = true;
 					conveyers.Add(new Vector2Int(x, y), tmpConveyer);
+					tmpConveyer.SetCoords(new Vector2Int(x, y));
 				}
 				else
 				{
@@ -590,7 +588,7 @@ namespace DistilledGames
 				// Look at the conveyers coord.
 				Vector2Int conveyerCord = keyValuePair.Key;
 				Conveyer conveyer = keyValuePair.Value;
-				CalculatateForCoveyer(conveyerCord, conveyer);
+				CalculateForCoveyer(conveyerCord, conveyer);
 			}
 
 			if (placing)
@@ -598,7 +596,7 @@ namespace DistilledGames
 				conveyers.Remove(new Vector2Int(x, y));
 			}
 
-			void CalculatateForCoveyer(Vector2Int conveyerCord, Conveyer conveyer)
+			void CalculateForCoveyer(Vector2Int conveyerCord, Conveyer conveyer)
 			{
 				outGoingConnections.Clear();
 
@@ -794,7 +792,6 @@ namespace DistilledGames
 
 					return false;
 				}
-
 				bool IsMerger(ref Conveyer conveyerIn, out Direction targetDirection)
 				{
 					// Two nodes out

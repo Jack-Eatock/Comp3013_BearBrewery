@@ -31,6 +31,11 @@ namespace DistilledGames
 			colourStart = renderer.color;
 		}
 
+		public void SetCoords(Vector2Int _gridCoords)
+		{
+			gridCoords = _gridCoords;
+		}
+
 		public void OnPlaced(Vector2Int _gridCoords)
 		{
 			gridCoords = _gridCoords;
