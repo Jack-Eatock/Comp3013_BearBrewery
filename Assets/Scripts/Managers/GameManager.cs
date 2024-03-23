@@ -2,6 +2,7 @@ using Cinemachine;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace DistilledGames
 {
@@ -68,12 +69,21 @@ namespace DistilledGames
 			CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
 		}
 
-		private void Start()
-		{
-			AudioManager.Instance.Music_PlayTrack("Music");
-		}
+        private void Start()
+        {
+            string sceneName = SceneManager.GetActiveScene().name;
 
-		public void StartGame()
+            if (sceneName == "OutsideScene")
+            {
+                AudioManager.Instance.Music_PlayTrack("Outdoors");
+            }
+            else
+            {
+                AudioManager.Instance.Music_PlayTrack("Music");
+            }
+        }
+
+        public void StartGame()
 		{
 			MenuManager.Instance.SetGUIState(true);
 			Cash = startingCash;
