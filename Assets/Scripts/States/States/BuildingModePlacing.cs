@@ -80,8 +80,7 @@ namespace DistilledGames.States
 			if (BuildingManager.Instance.OurCoordsWithinBounds(requiredCoords))
 			{
 				currentSelectedCoords = closestCoord;
-				Vector3 offset = new(BuildingManager.Instance.TileMapGrid.cellSize.x / 2 * buildingPlacing.Data.Width, BuildingManager.Instance.TileMapGrid.cellSize.y / 2 * buildingPlacing.Data.Height, 0);
-				buildingPlacing.transform.position = BuildingManager.Instance.GetWorldPosOfGridCoord(closestCoord) + offset;
+				BuildingManager.Instance.PlacingBuildingUpdatePos(ref buildingPlacing, closestCoord);
 			}
 		}
 
@@ -107,6 +106,7 @@ namespace DistilledGames.States
 			else if (!EventSystem.current.IsPointerOverGameObject())
 			{
 				Debug.Log("Cant place here");
+
 				buildingPlacing.FlashColour(Color.red, .2f);
 				AudioManager.Instance.SFX_PlayClip("CantPlace", 1f);
 			}

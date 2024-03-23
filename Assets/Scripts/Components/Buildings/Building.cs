@@ -17,7 +17,7 @@ namespace DistilledGames
 
 		[SerializeField] private bool isRotatable = false;
 		private Direction currentRotation = Direction.Up;
-		[SerializeField] private Sprite rotationUp, rotationRight, rotationDown, rotationLeft;
+		[SerializeField] protected Sprite rotationUp, rotationRight, rotationDown, rotationLeft;
 
 		[SerializeField]
 		private Transform arrowsHolder;
@@ -29,6 +29,11 @@ namespace DistilledGames
 		{
 			renderer = GetComponent<SpriteRenderer>();
 			colourStart = renderer.color;
+		}
+
+		public void SetCoords(Vector2Int _gridCoords)
+		{
+			gridCoords = _gridCoords;
 		}
 
 		public void OnPlaced(Vector2Int _gridCoords)
@@ -44,29 +49,46 @@ namespace DistilledGames
 			}
 		}
 
+		protected void UpdateSprite()
+		{
+			if (GetRotationSprite(currentRotation) != null)
+				renderer.sprite = GetRotationSprite(currentRotation);
+		}
+
 		public virtual bool Rotate(int dir)
 		{
 			if (!isRotatable)
-			{
 				return false;
-			}
 
-			int newRotation = (int)currentRotation + dir;
-
-			currentRotation = newRotation > 3 ? 0 : newRotation < 0 ? (Direction)3 : (Direction)newRotation;
+			currentRotation = IterateDirection(currentRotation, dir);
 
 			// Do they have this rotation option?
 			if (GetRotationSprite(currentRotation) == null)
-			{
 				return Rotate(dir);
-			}
 
 			renderer.sprite = GetRotationSprite(currentRotation);
 
 			return true;
 		}
 
-		private Sprite GetRotationSprite(Direction dir)
+		private Direction IterateDirection(Direction dir, int change)
+		{
+			int result = (int)dir + change;
+			if (result > 3)
+				result = result % 4;
+
+			else if (result < 0)
+			{
+				result = 4 - Math.Abs(result) % 4;
+			}
+				
+
+			Direction dirResult = (Direction)result;
+
+			return dirResult;
+		}
+
+		virtual protected Sprite GetRotationSprite(Direction dir)
 		{
 			return dir switch
 			{

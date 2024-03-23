@@ -6,12 +6,122 @@ namespace DistilledGames
 {
 	public class Conveyer : Building, IInteractable, IConveyerInteractable
 	{
+		public enum ConveyerType { Normal, Corner, Splitter, Merger }
+		private ConveyerType type;
+
+		public ConveyerType Type => type;
+
 		private Item itemOnBelt = null;
 		private IConveyerInteractable sendingTo = null;
 		private IEnumerator movingItem = null;
 
+		private List<Vector2Int> desiredOutputs = new List<Vector2Int>();
+
 		[SerializeField]
 		private List<IConveyerInteractable> outConnections = new();
+
+		[SerializeField]
+		private Sprite curvedRotationRightUp, curvedRotationRightDown, curvedRotationLeftUp, curvedRotationLeftDown, curvedRotationUpRight, curvedRotationUpLeft, curvedRotationDownRight, curvedRotationDownLeft;
+
+		[SerializeField]
+		private Sprite TRotationUp, TRotationRight, TRotationDown, TRotationLeft;
+
+		private Direction directionIn;
+
+
+		public void SetDesiredOutputs(List<Vector2Int> outputs)
+		{
+			desiredOutputs = outputs;
+		}
+		public List<Vector2Int> GetDesiredOutputs()
+		{
+			return desiredOutputs;
+		}
+
+		public void SetConveyerType(ConveyerType _type, Direction dirIn)
+		{
+			directionIn = dirIn;
+
+
+			type = _type;
+			UpdateSprite();
+		}
+
+		protected override Sprite GetRotationSprite(Direction dir)
+		{
+			switch (type)
+			{
+				case ConveyerType.Normal:
+					return dir switch
+					{
+						Direction.Up => rotationUp,
+						Direction.Right => rotationRight,
+						Direction.Down => rotationDown,
+						Direction.Left => rotationLeft,
+						_ => null,
+					};
+			
+
+				case ConveyerType.Corner:
+
+					if (dir == Direction.Up)
+					{
+						if (directionIn == Direction.Right)
+							return curvedRotationRightUp;
+						else
+							return curvedRotationLeftUp;
+					}
+
+					if (dir == Direction.Right)
+					{
+						if (directionIn == Direction.Up)
+							return curvedRotationUpRight;
+						else
+							return curvedRotationDownRight;
+					}
+
+					if (dir == Direction.Down)
+					{
+						if (directionIn == Direction.Right)
+							return curvedRotationRightDown;
+						else
+							return curvedRotationLeftDown;
+					}
+
+					if (dir == Direction.Left)
+					{
+						if (directionIn == Direction.Up)
+							return curvedRotationUpLeft;
+						else
+							return curvedRotationDownLeft;
+					}
+
+					break;
+
+				case ConveyerType.Splitter:
+					return directionIn switch
+					{
+						Direction.Up => TRotationUp,
+						Direction.Right => TRotationRight,
+						Direction.Down => TRotationDown,
+						Direction.Left => TRotationLeft,
+						_ => null,
+					};
+
+
+				case ConveyerType.Merger:
+					return directionIn switch
+					{
+						Direction.Up => TRotationUp,
+						Direction.Right => TRotationRight,
+						Direction.Down => TRotationDown,
+						Direction.Left => TRotationLeft,
+						_ => null,
+					};
+
+			}
+			return rotationUp;
+		}
 
 		#region Conveyer Running Process
 

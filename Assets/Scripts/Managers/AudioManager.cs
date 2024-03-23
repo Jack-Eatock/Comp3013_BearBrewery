@@ -117,7 +117,6 @@ namespace DistilledGames
 				if (!sfxSources[i].isPlaying)
 				{
 					foundAvailableSource = true;
-					Debug.Log("1");
 					sfxSources[i].PlayOneShot(clip, volume);
 					break;
 				}
