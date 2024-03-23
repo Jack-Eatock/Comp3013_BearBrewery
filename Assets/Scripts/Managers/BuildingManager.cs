@@ -624,7 +624,7 @@ namespace DistilledGames
 				{
 					conveyer.SetConveyerType(Conveyer.ConveyerType.Corner, tmpConveyer.GetDirection());
 
-					Debug.Log(conveyer.GetDirection());
+					//Debug.Log(conveyer.GetDirection());
 					// Is there a conveyer in the direction it is facing?
 					if (conveyers.ContainsKey(coordFront))
 					{

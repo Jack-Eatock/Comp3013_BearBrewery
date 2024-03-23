@@ -21,12 +21,14 @@ public class UserInterface : MonoBehaviour
 		}
 
 		UpdateRevText("0");
+	}
 
-		if (TimeManager.Instance != null)
-		{
-			TimeManager.Instance.OnTimeChanged += UpdateTimeText;
-			TimeManager.Instance.OnDayChanged += UpdateDayText;
-		}
+	private void OnEnable()
+	{
+
+		TimeManager.Instance.OnTimeChanged += UpdateTimeText;
+		TimeManager.Instance.OnDayChanged += UpdateDayText;
+		
 	}
 
 	public void UpdateRevText(string text)
