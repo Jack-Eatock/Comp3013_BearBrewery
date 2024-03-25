@@ -33,7 +33,7 @@ public class UserInterface : MonoBehaviour
 
 	public void UpdateRevText(string text)
 	{
-		revText.text = "Revenue: £" + text;
+		revText.text =  text;
 	}
 
 	private void UpdateTimeText(string time)

@@ -9,7 +9,7 @@ public class TimeManager : MonoBehaviour
 	public event Action<string> OnTimeChanged;
 	public event Action<string> OnDayChanged;
 
-	[SerializeField] private float secondsInTenMinutes = 1;
+	[SerializeField] private float secondsInTenMinutes = 4;
 
 	private int currentTimeInMinutes = 480; // 8 AM in minutes
 	private readonly string[] daysOfWeek = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };

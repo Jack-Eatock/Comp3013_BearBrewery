@@ -141,7 +141,7 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 652
-        width: 1761
+        width: 1760
         height: 459
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -245,9 +245,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 321
-        y: 425
+        y: 322
         width: 319
-        height: 214
+        height: 317
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -362,27 +362,6 @@ TextureImporter:
       bones: []
       spriteID: 69ffb7c2f5937444dbd0cdd39d8d7d18
       internalID: 1178838249
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: uiI_sheet_11
-      rect:
-        serializedVersion: 2
-        x: 322
-        y: 323
-        width: 314
-        height: 99
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 267dc28f2bebf2944a2e264400f849ae
-      internalID: 29382812
       vertices: []
       indices: 
       edges: []
