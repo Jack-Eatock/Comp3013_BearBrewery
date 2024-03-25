@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class TimeManager : MonoBehaviour
@@ -8,11 +9,13 @@ public class TimeManager : MonoBehaviour
 	public event Action<string> OnTimeChanged;
 	public event Action<string> OnDayChanged;
 
-	[SerializeField] private int secondsInTenMinutes = 4;
+	[SerializeField] private float secondsInTenMinutes = 4;
 
 	private int currentTimeInMinutes = 480; // 8 AM in minutes
-	private readonly string[] daysOfWeek = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
+	private readonly string[] daysOfWeek = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
 	private int currentDayIndex = 0;
+
+	private IEnumerator updatingTime;
 
 	private void Awake()
 	{
@@ -25,10 +28,11 @@ public class TimeManager : MonoBehaviour
 			Instance = this;
 		}
 
-		_ = StartCoroutine(UpdateTime());
+		updatingTime = UpdateTime();
+		StartCoroutine(updatingTime);
 	}
 
-	private System.Collections.IEnumerator UpdateTime()
+	private IEnumerator UpdateTime()
 	{
 		while (true)
 		{
@@ -42,6 +46,8 @@ public class TimeManager : MonoBehaviour
 				currentTimeInMinutes = 480; // Reset to 8 AM
 				UpdateDay();
 			}
+
+			yield return null;
 		}
 	}
 
