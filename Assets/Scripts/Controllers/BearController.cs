@@ -51,10 +51,12 @@ public class BearController : MonoBehaviour
 	private void FixedUpdate()
 	{
 		MovePlayer();
-		Helper.UpdateSortingOrder(rend, transform);
+		//Helper.UpdateSortingOrder(rend, transform);
+
+
 		if (HeldItem != null)
 		{
-			Helper.UpdateSortingOrder(HeldItem.Rend, HeldItem.transform, 1);
+			//Helper.UpdateSortingOrder(HeldItem.Rend, HeldItem.transform, 1);
 		}
 
 		FlipSpriteBasedOnMoveDirection();

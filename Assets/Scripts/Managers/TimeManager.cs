@@ -30,7 +30,15 @@ public class TimeManager : MonoBehaviour
 
 		updatingTime = UpdateTime();
 		StartCoroutine(updatingTime);
+		DontDestroyOnLoad(gameObject);
 	}
+	public void ForceUpdate()
+	{
+		string timeString = FormatTime(currentTimeInMinutes);
+		OnTimeChanged?.Invoke(timeString);
+		UpdateDay();
+	}
+
 
 	private IEnumerator UpdateTime()
 	{

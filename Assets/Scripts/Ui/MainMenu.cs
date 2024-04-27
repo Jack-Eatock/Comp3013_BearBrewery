@@ -31,8 +31,7 @@ public class MainMenu : BaseMenu
 
 	private void Start()
 	{
-		ShowMenu();
-		SetupMenu(false);
+
 	}
 
 	public override void ShowMenu()
