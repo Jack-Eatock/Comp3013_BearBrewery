@@ -64,7 +64,7 @@ namespace DistilledGames.States
 
 			Vector3Int closestCoord = BuildingManager.Instance.ClosestGridCoord();
 
-			Helper.UpdateSortingOrder(buildingPlacing.Rend, buildingPlacing.transform);
+			//Helper.UpdateSortingOrder(buildingPlacing.Rend, buildingPlacing.transform);
 
 			// What coords would be required?
 			requiredCoords.Clear();

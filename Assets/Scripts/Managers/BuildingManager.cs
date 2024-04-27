@@ -154,7 +154,7 @@ namespace DistilledGames
 			}
 
 			Debug.Log("a  " + objToPlace + " " + objToPlace.Rend);
-			Helper.UpdateSortingOrder(objToPlace.Rend, objToPlace.transform);
+			//Helper.UpdateSortingOrder(objToPlace.Rend, objToPlace.transform);
 			placedObjects.Add(coords, objToPlace);
 
 			if (objToPlace.TryGetComponent(out Conveyer conveyer))
@@ -576,6 +576,7 @@ namespace DistilledGames
 					placing = true;
 					conveyers.Add(new Vector2Int(x, y), tmpConveyer);
 					tmpConveyer.SetCoords(new Vector2Int(x, y));
+					tmpConveyer.Rend.sortingOrder = 1;
 				}
 				else
 				{

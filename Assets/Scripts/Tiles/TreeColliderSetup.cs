@@ -1,3 +1,4 @@
+using DistilledGames;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -31,7 +32,7 @@ public class TreeBottomCollider : MonoBehaviour
                         Vector3Int cellPosition = new Vector3Int(x, y, 0);
                         Vector3 worldPosition = tilemap.CellToWorld(cellPosition);
                         AddCollider(worldPosition);
-                    }
+					}
                 }
             }
         }
