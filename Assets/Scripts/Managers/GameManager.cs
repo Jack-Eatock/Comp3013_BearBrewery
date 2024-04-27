@@ -21,6 +21,7 @@ namespace DistilledGames
 
 		// Playthrough
 		private readonly List<Item> items = new();
+		private Door door;
 
 		// Settings
 		public float ConveyerBeltsTimeToMove = 1;
@@ -64,6 +65,7 @@ namespace DistilledGames
 			}
 			DontDestroyOnLoad(gameObject);
 			BearController = GameObject.FindGameObjectWithTag("Bear").GetComponent<BearController>();
+			door = GameObject.FindObjectOfType<Door>();
 			CamController = GameObject.FindGameObjectWithTag("Cam").GetComponent<CamController>();
 			nextState = StateDefinitions.GameStates.Normal.ToString();
 			CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
@@ -73,7 +75,23 @@ namespace DistilledGames
         {
             string sceneName = SceneManager.GetActiveScene().name;
 
-            if (sceneName == "OutsideScene")
+			if (SceneController.instance.hasGamePlayed)
+			{
+				nextState = StateDefinitions.GameStates.Normal.ToString();
+				MenuManager.Instance.SetGUIState(true);
+				CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
+				Cash = SceneController.instance.cash;
+				BearController.transform.position = door.bearPos.position;
+				UserInterface.Instance.UpdateRevText(Cash.ToString());
+				TimeManager.Instance.ForceUpdate();
+			}
+			else
+			{
+				MainMenu.Instance.ShowMenu();
+				MainMenu.Instance.SetupMenu(false);
+			}
+
+			if (sceneName == "OutsideScene")
             {
                 AudioManager.Instance.Music_PlayTrack("Outdoors");
             }
@@ -87,10 +105,9 @@ namespace DistilledGames
 		{
 			MenuManager.Instance.SetGUIState(true);
 			Cash = startingCash;
-			UserInterface.Instance.UpdateRevText(Cash.ToString());
-
 			nextState = StateDefinitions.GameStates.Normal.ToString();
 			CheckIfStateShouldChange(StateDefinitions.ChangeInState.NextState);
+			UserInterface.Instance.UpdateRevText(Cash.ToString());
 		}
 
 		private void Update()
@@ -158,6 +175,7 @@ namespace DistilledGames
 		{
 			_ = items.Remove(item);
 		}
+
 
 		#region Cash
 
